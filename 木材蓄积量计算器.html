@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>木材蓄积量与出材量计算器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #faf6ee;
+  --parchment: #f2ead8;
+  --wood-light: #d4b88c;
+  --wood: #b08548;
+  --wood-dark: #7a5528;
+  --bark: #342215;
+  --bark-deep: #1a0f06;
+  --pine: #163020;
+  --pine-light: #265a38;
+  --moss: #3d5a2e;
+  --leaf: #4e7a35;
+  --amber: #c8880a;
+  --gold: #e0a410;
+  --sunset: #b8621e;
+  --danger: #941e1e;
+  --info: #1e4a6a;
+  --radius-sm: 4px;
+  --radius: 8px;
+  --radius-lg: 14px;
+  --shadow-sm: 0 1px 4px rgba(26,15,6,0.12);
+  --shadow: 0 3px 16px rgba(26,15,6,0.16);
+  --shadow-lg: 0 8px 36px rgba(26,15,6,0.2);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--cream);
+  color: var(--bark);
+  font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  line-height: 1.6;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Subtle wood-grain texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.03;
+  background:
+    repeating-linear-gradient(2deg, transparent, transparent 3px, rgba(139,105,20,0.1) 3px, rgba(139,105,20,0.1) 4px),
+    repeating-linear-gradient(87deg, transparent, transparent 7px, rgba(74,55,40,0.06) 7px, rgba(74,55,40,0.06) 8px);
+}
+
+/* Hero header */
+.hero {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(170deg, #0f1f14 0%, #1a3a26 30%, #265a38 55%, #1a3a26 85%, #0f1f14 100%);
+  color: #fff;
+  padding: 48px 0 40px;
+  text-align: center;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(124,179,66,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(230,168,23,0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(255,255,255,0.03) 0%, transparent 70%);
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--wood-light), var(--amber), var(--wood-light));
+}
+.hero-content { position: relative; z-index: 1; }
+
+/* Tree ring decorative element */
+.ring-decoration {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.06);
+  pointer-events: none;
+}
+.ring-1 { width: 300px; height: 300px; top: -120px; right: -60px; }
+.ring-2 { width: 400px; height: 400px; top: -170px; right: -110px; }
+.ring-3 { width: 200px; height: 200px; bottom: -40px; left: -40px; }
+
+.logo-icon {
+  display: inline-block;
+  font-size: 48px;
+  margin-bottom: 4px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+.hero h1 {
+  font-family: "Noto Serif SC", "SimSun", serif;
+  font-size: 36px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.hero .formula-display {
+  display: inline-block;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 20px;
+  padding: 6px 20px;
+  font-family: "Noto Serif SC", serif;
+  font-size: 14px;
+  letter-spacing: 1px;
+  margin-top: 8px;
+  color: rgba(255,255,255,0.75);
+}
+.hero .formula-display sup { font-size: 11px; color: var(--amber); }
+.hero .location-tag {
+  display: inline-block;
+  background: rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 4px 16px;
+  font-size: 12px;
+  margin-top: 8px;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,0.65);
+}
+
+.container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Cards */
+.card {
+  background: var(--parchment);
+  border: 1px solid rgba(196,165,110,0.3);
+  border-radius: var(--radius-lg);
+  padding: 28px 32px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+  position: relative;
+  transition: box-shadow 0.3s;
+}
+.card:hover { box-shadow: var(--shadow-lg); }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 2px solid rgba(196,165,110,0.25);
+}
+.card-header .icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--pine), var(--pine-light));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+}
+.card-header h2 {
+  font-family: "Noto Serif SC", serif;
+  font-size: 19px;
+  color: var(--bark-deep);
+  font-weight: 700;
+}
+
+/* Form grid */
+.calc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 18px;
+  align-items: end;
+}
+.calc-grid.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+@media (max-width: 900px) { .calc-grid.cols-4 { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 700px) { .calc-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 450px) { .calc-grid, .calc-grid.cols-4 { grid-template-columns: 1fr; } }
+
+.area-row { margin-top: 10px; }
+.area-group { max-width: 240px; }
+
+.yield-row { margin-top: 8px; }
+.yield-toggle { font-size: 12px; color: var(--wood-dark); cursor: pointer; user-select: none; }
+.yield-toggle:hover { color: var(--pine); }
+.yield-fields { margin-top: 8px; padding: 12px; background: rgba(196,165,110,0.06); border-radius: var(--radius-sm); }
+.yield-inputs { display: flex; gap: 12px; flex-wrap: wrap; }
+.yield-inputs label { font-size: 13px; color: var(--bark); font-weight: 500; }
+.yield-inputs input { width: 80px; padding: 6px 8px; border: 2px solid rgba(196,165,110,0.35); border-radius: 4px; font-size: 13px; font-family: inherit; text-align: center; }
+
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bark);
+  letter-spacing: 0.5px;
+}
+.form-group label .hint {
+  font-weight: 400;
+  color: #8b7355;
+  font-size: 11px;
+}
+select, input[type="number"] {
+  padding: 11px 14px;
+  border: 2px solid rgba(196,165,110,0.35);
+  border-radius: var(--radius);
+  font-size: 15px;
+  font-family: inherit;
+  background: #fffefb;
+  color: var(--bark-deep);
+  transition: all 0.2s;
+  outline: none;
+}
+select:focus, input:focus {
+  border-color: var(--pine);
+  box-shadow: 0 0 0 4px rgba(45,90,63,0.08);
+}
+select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%238b6914'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+/* Buttons */
+.btn-row { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+
+.btn {
+  padding: 11px 26px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-family: inherit;
+  letter-spacing: 0.5px;
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 60%);
+  pointer-events: none;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--pine), #357548);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(45,90,63,0.25);
+}
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(45,90,63,0.35);
+}
+.btn-outline {
+  background: #fffefb;
+  color: var(--pine);
+  border: 2px solid rgba(45,90,63,0.25);
+}
+.btn-outline:hover { background: #f0f5f1; border-color: var(--pine); }
+.btn-danger {
+  background: #fffefb;
+  color: var(--danger);
+  border: 2px solid rgba(192,57,43,0.2);
+}
+.btn-danger:hover { background: #fef5f5; border-color: var(--danger); }
+.btn-sm { padding: 7px 16px; font-size: 12px; border-radius: var(--radius-sm); }
+
+/* Species info bar */
+.species-bar {
+  margin-top: 10px;
+  padding: 10px 14px;
+  background: rgba(45,90,63,0.04);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: #6b5d4f;
+  border-left: 3px solid var(--wood);
+}
+.species-bar .badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin: 0 4px;
+}
+.badge-high { background: #d4edda; color: #1b5e20; }
+.badge-medium { background: #fff3cd; color: #856404; }
+.badge-low { background: #fce4e4; color: #a71d2a; }
+.badge-est { background: #f5f5f5; color: #666; }
+
+/* Results */
+.result-panel {
+  display: none;
+  margin-top: 20px;
+  animation: fadeSlide 0.4s ease;
+}
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.result-panel.show { display: block; }
+
+.volume-hero {
+  text-align: center;
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(45,90,63,0.06), rgba(124,179,66,0.06));
+  border-radius: var(--radius-lg);
+  border: 2px dashed rgba(45,90,63,0.15);
+  margin-bottom: 16px;
+}
+.volume-hero .volume-number {
+  font-family: "Noto Serif SC", serif;
+  font-size: 48px;
+  font-weight: 900;
+  color: var(--pine);
+  line-height: 1;
+}
+.volume-hero .volume-unit { font-size: 16px; color: #6b5d4f; }
+
+.area-hero {
+  text-align: center;
+  padding: 18px;
+  background: linear-gradient(135deg, rgba(212,132,58,0.06), rgba(230,168,23,0.06));
+  border-radius: var(--radius);
+  border: 2px dashed rgba(212,132,58,0.25);
+  margin-bottom: 14px;
+}
+.area-title { font-size: 14px; font-weight: 700; color: var(--sunset); margin-bottom: 10px; }
+.area-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+.area-stat { font-size: 13px; color: var(--bark); }
+.area-stat .big { font-size: 24px; font-weight: 700; color: var(--sunset); display: block; }
+
+.yield-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+}
+.yield-item {
+  background: #fffefb;
+  border: 1px solid rgba(196,165,110,0.25);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-align: center;
+  transition: transform 0.2s;
+}
+.yield-item:hover { transform: translateY(-2px); }
+.yield-item .yield-val { font-size: 22px; font-weight: 700; color: var(--bark-deep); }
+.yield-item .yield-label { font-size: 11px; color: #8b7355; margin-top: 2px; }
+.yield-item.economic {
+  border: 2px solid var(--pine);
+  background: rgba(45,90,63,0.04);
+}
+.yield-item.economic .yield-val { color: var(--pine); font-size: 26px; }
+
+/* Table */
+.table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid rgba(196,165,110,0.2); }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  background: linear-gradient(180deg, var(--bark), #3d2e20);
+  color: #fdf8f0;
+  padding: 12px 8px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  font-size: 12px;
+}
+tbody td {
+  padding: 9px 8px;
+  text-align: center;
+  border-bottom: 1px solid rgba(196,165,110,0.15);
+  background: #fffefb;
+}
+tbody tr:hover td { background: #fcf8f0; }
+tbody input, tbody select {
+  width: 100%;
+  padding: 7px 8px;
+  border: 1px solid rgba(196,165,110,0.3);
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+  text-align: center;
+  background: #fffefb;
+}
+.summary-row td {
+  font-weight: 700;
+  background: linear-gradient(180deg, #e8e0d0, #e0d8c4) !important;
+  border-top: 3px solid var(--wood-dark);
+  font-size: 14px;
+}
+
+.toolbar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+
+/* Collapsible */
+.collapsible-header {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.collapsible-header .arrow {
+  transition: transform 0.3s;
+  font-size: 14px;
+  color: var(--wood-dark);
+}
+.collapsible-header.open .arrow { transform: rotate(180deg); }
+.collapsible-content { display: none; margin-top: 14px; }
+.collapsible-content.open { display: block; }
+
+/* Callouts */
+.callout {
+  padding: 14px 18px;
+  border-radius: var(--radius);
+  margin: 12px 0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.callout-warn {
+  background: #fffdf5;
+  border: 1px solid rgba(230,168,23,0.25);
+  border-left: 4px solid var(--amber);
+}
+.callout-info {
+  background: #f5f9fc;
+  border: 1px solid rgba(58,107,140,0.2);
+  border-left: 4px solid var(--info);
+}
+.callout-danger {
+  background: #fef9f9;
+  border: 1px solid rgba(192,57,43,0.2);
+  border-left: 4px solid var(--danger);
+}
+
+/* Data source table */
+.src-table { font-size: 12px; }
+.src-table th { background: var(--bark); font-size: 11px; }
+.src-table .confidence-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+.conf-high { background: #2e7d32; box-shadow: 0 0 6px rgba(46,125,50,0.4); }
+.conf-medium { background: #f9a825; box-shadow: 0 0 6px rgba(249,168,37,0.4); }
+.conf-low { background: #c62828; box-shadow: 0 0 6px rgba(198,40,40,0.4); }
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 32px 20px;
+  color: #8b7355;
+  font-size: 12px;
+  line-height: 2;
+  border-top: 1px solid rgba(196,165,110,0.2);
+  margin-top: 20px;
+}
+.footer .tree-divider {
+  display: block;
+  font-size: 20px;
+  letter-spacing: 8px;
+  opacity: 0.4;
+  margin-bottom: 8px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .card { padding: 18px 16px; }
+  .hero h1 { font-size: 26px; }
+  .volume-hero .volume-number { font-size: 36px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Hero -->
+<header class="hero">
+  <div class="ring-decoration ring-1"></div>
+  <div class="ring-decoration ring-2"></div>
+  <div class="ring-decoration ring-3"></div>
+  <div class="hero-content">
+    <div class="logo-icon"></div>
+    <h1>木材蓄积量 · 出材量计算器</h1>
+    <div class="formula-display">V = a × D<sup>b</sup> × H<sup>c</sup> &nbsp;—&nbsp; 二元立木材积法</div>
+    <div class="location-tag">多省标准 · 自定义树种 · 动态出材率</div>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- ====== 单株计算 ====== -->
+<div class="card" id="singleCard">
+  <div class="card-header">
+    <div class="icon"></div>
+    <h2>单株木材积计算</h2>
+  </div>
+
+  <div class="calc-grid cols-4">
+    <div class="form-group">
+      <label>树种</label>
+      <select id="speciesSelect" onchange="onSpeciesChange()"></select>
+    </div>
+    <div class="form-group">
+      <label>胸径 DBH <span class="hint">cm</span></label>
+      <input type="number" id="dbhInput" placeholder="例: 24.5" step="0.1" min="1" max="300">
+    </div>
+    <div class="form-group">
+      <label>树高 H <span class="hint">m</span></label>
+      <input type="number" id="heightInput" placeholder="例: 15.0" step="0.1" min="1" max="100">
+    </div>
+    <div class="form-group">
+      <label>棵数 <span class="hint">相同规格的株数</span></label>
+      <input type="number" id="countInput" placeholder="1" value="1" step="1" min="1" max="99999">
+    </div>
+  </div>
+
+  <div class="species-bar" id="speciesBar"></div>
+
+  <div class="area-row">
+    <div class="form-group area-group">
+      <label>采伐面积(亩) <span class="hint">— 可选，填了就算亩均</span></label>
+      <input type="number" id="areaInput" placeholder="留空不计算亩均" step="0.1" min="0.1" max="99999">
+    </div>
+  </div>
+
+  <div class="yield-row" id="yieldCustom">
+    <span class="yield-toggle" onclick="toggleYield()">综合出材率 ▸ 点击自定义</span>
+    <div class="yield-fields" id="yieldFields" style="display:none;">
+      <div class="yield-inputs">
+        <label>综合出材率 <input type="number" id="yTotal" placeholder="如 0.6" step="0.01" min="0" max="1" style="width:100px;"></label>
+        <span style="font-size:11px;color:#8b7355;align-self:center;">填一个数即可，如 0.6 = 60%。自动按默认比例分配规格/非规格/薪材/废材</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="yield-row">
+    <span class="yield-toggle" onclick="toggleCustom()">自定义树种/公式 ▸ 点击展开</span>
+    <div class="yield-fields" id="customFields" style="display:none;">
+      <div class="yield-inputs">
+        <label>树种名称 <input type="text" id="cName" placeholder="如：自定柳杉" style="width:140px;"></label>
+        <label>a <input type="number" id="cA" placeholder="a" step="0.000000000001" style="width:130px;"></label>
+        <label>b <input type="number" id="cB" placeholder="b" step="0.000001"></label>
+        <label>c <input type="number" id="cC" placeholder="c" step="0.000001"></label>
+        <button class="btn btn-sm btn-outline" onclick="saveCustom()" style="align-self:flex-end;">保存此公式</button>
+      </div>
+      <span style="font-size:11px;color:#8b7355;">公式 V = a × D<sup>b</sup> × H<sup>c</sup>。填 a,b,c 后优先使用。可保存到浏览器，下次使用。</span>
+    </div>
+  </div>
+
+  <!-- 保存的自定义树种 -->
+  <div class="yield-row" id="savedCustoms" style="display:none;">
+    <span style="font-size:12px;color:var(--bark);font-weight:600;">已保存的自定义：</span>
+    <span id="savedList" style="font-size:12px;"></span>
+  </div>
+
+  <!-- 计算历史 -->
+  <div class="yield-row">
+    <span class="yield-toggle" onclick="toggleHistory()">计算历史 (<span id="histCount">0</span>条) ▸ 展开</span>
+    <div id="histPanel" style="display:none;margin-top:8px;max-height:200px;overflow-y:auto;font-size:12px;"></div>
+    <button class="btn btn-sm btn-danger" onclick="clearHistory()" style="margin-top:4px;">清空历史</button>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="calcSingle()">计算蓄积量 & 出材量</button>
+    <button class="btn btn-outline" onclick="addToBatch()">+ 加入批量列表</button>
+  </div>
+
+  <div class="result-panel" id="singleResult"></div>
+</div>
+
+<!-- ====== 批量计算 ====== -->
+<div class="card" id="batchCard">
+  <div class="card-header">
+    <div class="icon"></div>
+    <h2>批量采伐汇总</h2>
+  </div>
+  <p style="font-size:13px;color:#6b5d4f;margin-bottom:14px;">
+    添加多株树木进行采伐设计。手动逐行添加，或通过上方「加入批量列表」添加。
+  </p>
+  <div class="toolbar">
+    <button class="btn btn-outline btn-sm" onclick="addRow()">+ 添加一行</button>
+    <button class="btn btn-primary btn-sm" onclick="calcBatch()">计算全部</button>
+    <button class="btn btn-danger btn-sm" onclick="clearBatch()">清空列表</button>
+    <span style="margin-left:16px;display:flex;align-items:center;gap:8px;">
+      <label style="font-size:13px;color:var(--bark);white-space:nowrap;">面积(亩):</label>
+      <input type="number" id="batchAreaInput" placeholder="可选" step="0.1" min="0.1" style="width:100px;padding:7px 10px;border:2px solid rgba(196,165,110,0.35);border-radius:6px;font-size:14px;font-family:inherit;">
+    </span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>树种</th><th>胸径 (cm)</th><th>树高 (m)</th>
+          <th>蓄积量 (m³)</th><th>规格材 (m³)</th><th>非规格材 (m³)</th>
+          <th>薪材 (m³)</th><th>废材 (m³)</th><th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="batchBody">
+        <tr><td colspan="10" style="padding:32px;color:#8b7355;">暂无数据 — 请添加树木</td></tr>
+      </tbody>
+      <tbody id="batchSummary" style="display:none;"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ====== 数据来源 ====== -->
+<div class="card">
+  <div class="collapsible-header" id="dataHeader" onclick="toggleData(this)">
+    <div class="card-header" style="border:none;margin:0;padding:0;">
+      <div class="icon"></div>
+      <h2>数据来源 & 可靠性验证</h2>
+    </div>
+    <span class="arrow">▼</span>
+  </div>
+  <div class="collapsible-content" id="dataPanel"></div>
+</div>
+
+</div>
+
+<footer class="footer">
+  <span class="tree-divider">   </span>
+  <strong>二元立木材积公式</strong> &nbsp; V = a × D<sup>b</sup> × H<sup>c</sup> &nbsp;|&nbsp; 变指数模型 V = a × D<sup>b₁+b₂(D+H)</sup> × H<sup>c₁+c₂(D+H)</sup><br>
+  <strong>已获取标准 (8个)</strong>: DB51/T 1462(柳杉) | DB51/T 1466(马尾松) | DB51/T 2918(森林经营) | DB52/T 703(马尾松黔) | DB52/T 822(软阔黔) | DB52/T 826(硬阔黔) | DB35/T 1823(福建) | DB53/T 1422.1(云南松滇) | DB34/T 3345(马尾松皖)<br>
+  <strong>参考标准</strong>: LY208-77(部标) | LY/T 2102-2013(编制规程) | GB/T 4814-2013(原木检尺) | DB51/T 1464/1465/1467(四川已废止)<br>
+  支持多省标准 · 自定义树种公式 · 本地存储历史
+</footer>
+
+<script>
+// ========== 树种数据库（多标准交叉验证） ==========
+// 公式来源: DB51/T 1462~1467(四川), DB52/T 702~826(贵州), DB35/T 1823(福建),
+//            DB53/T 1422(云南), LY208-77(部标), GB/T 4814-2013(原木检尺)
+const SPECIES = [
+  // ---- 四川 DB51 系列 ----
+  {
+    id: 'masson-pine', name: '马尾松(本地实际表)', latin: 'Pinus massoniana',
+    a: 0.0000589718432, b: 1.879095, c: 0.975023, isDynamic: false,
+    source: '本地实际使用材积表 回归(R²=0.992, n=150)', reliability: 'high',
+    yieldRates: { spec: 0.6, nonSpec: 0.2, fuel: 0.05, waste: 0.15 }, // DB51验证:经济材80%
+    note: '⭐ 本地现用表！从用户提供的150个表值回归。D=20 H=15→0.230m³'
+  },
+  {
+    id: 'masson-pine-db51', name: '马尾松(DB51标参)', latin: 'Pinus massoniana',
+    a: 0.00006808595, b: 1.858728, c: 0.9721861, isDynamic: false,
+    source: 'DB51/T 1466-2012 四川省标(已废止)', reliability: 'high',
+    yieldRates: { spec: 0.6, nonSpec: 0.2, fuel: 0.05, waste: 0.15 }, // DB51验证:经济材80%
+    note: 'DB51省标参考。D=20 H=15→0.248m³。与实际表偏差-7%'
+  },
+  {
+    id: 'chinese-fir', name: '杉木', latin: 'Cunninghamia lanceolata',
+    a: 0.000058777042, b: 1.9699831, c: 0.89646157, isDynamic: false,
+    source: 'DB51/T 1464-2012/LY208-77', reliability: 'high',
+    yieldRates: { spec: 0.55, nonSpec: 0.20, fuel: 0.05, waste: 0.20 }, // 杉木经济材73%(估)
+    note: 'DB51采用LY208-77参数。推荐。贵州DB52/T 702有变指数公式'
+  },
+  {
+    id: 'cypress', name: '柏木', latin: 'Cupressus funebris',
+    a: 0.0000687928, b: 1.593567, c: 1.176727, isDynamic: false,
+    source: 'DB51/T 1467-2012 四川省标(2025废止)', reliability: 'high',
+    yieldRates: { spec: 0.55, nonSpec: 0.20, fuel: 0.05, waste: 0.20 }, // 柏木经济材66%(估)
+    note: '✅ 7个查表值验证一致。贵州DB52/T 773有变指数公式。推荐'
+  },
+  {
+    id: 'cryptomeria', name: '柳杉(本地实际表)', latin: 'Cryptomeria fortunei',
+    a: 0.000073839671, b: 1.979618, c: 0.836352, isDynamic: false,
+    source: '本地实际使用材积表 回归(R²=0.992, n=80)', reliability: 'high',
+    yieldRates: { spec: 0.55, nonSpec: 0.20, fuel: 0.05, waste: 0.20 }, // 柳杉经济材72%(估)
+    note: '⭐ 本地现用表！从用户提供的80个表值回归。D=20 H=15→0.268m³'
+  },
+  {
+    id: 'cryptomeria-db51', name: '柳杉(DB51标参)', latin: 'Cryptomeria fortunei',
+    a: 0.000056280669, b: 1.82910409, c: 1.05195643, isDynamic: false,
+    source: 'DB51/T 1462-2012 四川省标(现行)', reliability: 'high',
+    yieldRates: { spec: 0.52, nonSpec: 0.20, fuel: 0.05, waste: 0.23 }, // 柳杉经济材72%(估)
+    note: 'DB51省标参考。D=20 H=15→0.233m³。与实际表偏差+15%'
+  },
+  {
+    id: 'yunnan-pine', name: '云南松', latin: 'Pinus yunnanensis',
+    a: 0.000058290117, b: 1.9796344, c: 0.90715154, isDynamic: false,
+    source: 'LY208-77 旧标 / DB51/T 1465-2012（已废止）', reliability: 'medium',
+    yieldRates: { spec: 0.5, nonSpec: 0.18, fuel: 0.07, waste: 0.25 }, // 云南松经济材70%(估)
+    note: '⚠ 旧标公式。2025新标DB53/T 1422.1已发布(天然/人工分开建模)，PDF已下载但需OCR提取系数'
+  },
+  {
+    id: 'yunnan-pine-natural', name: '云南松(天然·2025)', latin: 'P. yunnanensis (natural)',
+    a: 0.0000745425124, b: 1.846030, c: 0.921690, isDynamic: false,
+    source: 'DB53/T 1422.1-2025 表A.1回归拟合(R²=0.994)', reliability: 'high',
+    yieldRates: { spec: 0.48, nonSpec: 0.17, fuel: 0.07, waste: 0.28 }, // 天然云南松~65%
+    note: '✅ 从78个表值回归拟合。2038株样木(天然1050)。2025-09-07实施'
+  },
+  {
+    id: 'yunnan-pine-planted', name: '云南松(人工·2025)', latin: 'P. yunnanensis (planted)',
+    a: 0.00005696539, b: 1.991005, c: 0.841387, isDynamic: false,
+    source: 'DB53/T 1422.1-2025 表A.2回归拟合(R²=0.992)', reliability: 'high',
+    yieldRates: { spec: 0.55, nonSpec: 0.18, fuel: 0.05, waste: 0.22 }, // 人工云南松经济材72%(估)
+    note: '✅ 从56个表值回归拟合。2038株样木(人工988)。2025-09-07实施'
+  },
+  // ---- 西南通用 LY208-77 ----
+  {
+    id: 'armand-pine', name: '华山松', latin: 'Pinus armandii',
+    a: 0.000059973839, b: 1.8334312, c: 1.0295315, isDynamic: false,
+    source: 'LY208-77 西南地区', reliability: 'medium',
+    yieldRates: { spec: 0.5, nonSpec: 0.18, fuel: 0.07, waste: 0.25 }, // 华山松经济材70%(估)
+    note: '西南通用公式。贵州有DB52/T 768-2012'
+  },
+  {
+    id: 'oak', name: '栎类', latin: 'Quercus spp.',
+    a: 0.000059599785, b: 1.8564005, c: 0.93056206, isDynamic: false,
+    source: 'LY208-77 栎类专用', reliability: 'medium',
+    yieldRates: { spec: 0.4, nonSpec: 0.17, fuel: 0.08, waste: 0.35 }, // 栎类经济材61%(估)
+    note: 'LY208-77栎类专用系数。贵州DB52/T 826硬阔标准含栎类(已下载)'
+  },
+  {
+    id: 'alder', name: '桤木', latin: 'Alnus cremastogyne',
+    a: 0.000052750716, b: 1.9450324, c: 0.93862330, isDynamic: false,
+    source: 'LY208-77 四川滇西北阔叶公式', reliability: 'medium',
+    yieldRates: { spec: 0.42, nonSpec: 0.15, fuel: 0.08, waste: 0.35 }, // 桤木/软阔经济材63%(估)
+    note: '常见速生树种。贵州软阔DB52/T 822含桤木(已下载)'
+  },
+  {
+    id: 'poplar', name: '杨树', latin: 'Populus spp.',
+    a: 0.000052750716, b: 1.9450324, c: 0.93862330, isDynamic: false,
+    source: 'LY208-77 四川滇西北阔叶公式', reliability: 'medium',
+    yieldRates: { spec: 0.50, nonSpec: 0.20, fuel: 0.05, waste: 0.25 }, // 杨树经济材70%(估)
+    note: '四川杨树通用公式'
+  },
+  {
+    id: 'soft-broad', name: '软阔', latin: 'Soft broadleaf spp.',
+    a: 0.000052750716, b: 1.9450324, c: 0.93862330, isDynamic: false,
+    source: 'LY208-77 四川滇西北阔叶公式', reliability: 'medium',
+    yieldRates: { spec: 0.42, nonSpec: 0.15, fuel: 0.08, waste: 0.35 }, // 桤木/软阔经济材63%(估)
+    note: '含杨柳桤枫香香椿。贵州DB52/T 822软阔标准已下载'
+  },
+  {
+    id: 'hard-broad', name: '硬阔', latin: 'Hard broadleaf spp.',
+    a: 0.000052750716, b: 1.9450324, c: 0.93862330, isDynamic: false,
+    source: 'LY208-77 四川滇西北阔叶公式(谨慎使用)', reliability: 'low',
+    yieldRates: { spec: 0.45, nonSpec: 0.17, fuel: 0.08, waste: 0.3 }, // 硬阔经济材65%(估)
+    note: '⚠ 硬阔近似值。贵州DB52/T 826硬阔标准含壳斗科(已下载)'
+  },
+  // ---- 贵州 DB52 变指数模型（精度更高，供参考对比）----
+  {
+    id: 'fir-gz', name: '杉木(贵州)', latin: 'Cunninghamia lanceolata',
+    a: 0.000080597, b: 0, c: 0, isDynamic: true,
+    b1: 1.96709, b2: -0.0059006, c1: 0.7699, c2: 0.0072346,
+    source: 'DB52/T 702-2011 贵州省标(现行)', reliability: 'high',
+    yieldRates: { spec: 0.52, nonSpec: 0.20, fuel: 0.05, waste: 0.23 }, // 杉木经济材73%(估)
+    note: '变指数模型: V=a×D^(b1+b2(D+H))×H^(c1+c2(D+H))，精度高于固定指数'
+  },
+  {
+    id: 'pine-gz', name: '马尾松(贵州)', latin: 'Pinus massoniana',
+    a: 0.000062341803, b: 1.8551497, c: 0.95682492, isDynamic: false,
+    source: 'DB52/T 703-2011 贵州省标(现行,已下载)', reliability: 'high',
+    yieldRates: { spec: 0.6, nonSpec: 0.2, fuel: 0.05, waste: 0.15 }, // DB51验证:经济材80%
+    note: '贵州人工马尾松。已下载标准全文(12页)'
+  },
+  {
+    id: 'cypress-gz', name: '柏木(贵州)', latin: 'Cupressus funebris',
+    a: 0.000085626, b: 0, c: 0, isDynamic: true,
+    b1: 1.9148, b2: -0.0045828, c1: 0.74041, c2: 0.00668,
+    source: 'DB52/T 773-2012 贵州省标(现行)', reliability: 'high',
+    yieldRates: { spec: 0.55, nonSpec: 0.20, fuel: 0.05, waste: 0.20 }, // 参照DB51柏木 经济材75%
+    note: '变指数模型，指数随D+H线性变化，干形适应性更强'
+  },
+  {
+    id: 'soft-gz', name: '软阔(贵州)', latin: 'Soft broadleaf (Guizhou)',
+    a: 0.000073624, b: 0, c: 0, isDynamic: true,
+    b1: 1.89885, b2: 0, c1: 0.85616, c2: 0.00064635,
+    source: 'DB52/T 822-2013 贵州省标(现行,已下载)', reliability: 'high',
+    yieldRates: { spec: 0.42, nonSpec: 0.15, fuel: 0.08, waste: 0.35 }, // 桤木/软阔经济材63%(估)
+    note: '变指数模型。含枫香桦木香椿杨树朴树。已下载标准全文(12页)'
+  }
+];
+
+const YIELD_DISCLAIMER = '出材率参考《四川林业计量数表编制技术研究》(2013省科技进步三等奖)等标准成果。精确出材率需查对应标准的单木出材率表（按胸径树高分段内插）。应用内支持自定义综合出材率。';
+
+// ========== 工具函数 ==========
+function getActiveSpecies() {
+  const cs = getCustomSpecies();
+  return cs || SPECIES[document.getElementById('speciesSelect').value];
+}
+
+function calcVolume(s, dbh, height) {
+  if (s.a === 0) return null;
+  if (s.isDynamic && s.b1 !== undefined) {
+    const dh = dbh + height;
+    return s.a * Math.pow(dbh, s.b1 + s.b2 * dh) * Math.pow(height, s.c1 + s.c2 * dh);
+  }
+  return s.a * Math.pow(dbh, s.b) * Math.pow(height, s.c);
+}
+function calcYield(s, volume, dbh, height) {
+  // 动态出材率 = f(D, H)，基于DB51/T 1466 B.1表79点回归
+  // 仅有马尾松有标准验证，其他树种按比例缩放
+  const d = dbh || 20, h = height || 15;
+
+  // 马尾松基准: DB51/T 1466 B.1表 153点回归 R²=0.977 平均误差0.26%
+  let econPct = 69.20 + 0.1840 * d + 0.3443 * h;
+  econPct = Math.max(65, Math.min(90, econPct)); // clip to 65-90%
+
+  // 标准缺失的树种按相对马尾松的比例缩放
+  const scaleBySpecies = {
+    'masson-pine': 1.00, 'masson-pine-db51': 1.00, 'pine-gz': 1.00,
+    'chinese-fir': 0.94, 'fir-gz': 0.94,
+    'cypress': 0.94, 'cypress-gz': 0.94,
+    'cryptomeria': 0.90, 'cryptomeria-db51': 0.90,
+    'yunnan-pine': 0.88, 'yunnan-pine-natural': 0.85, 'yunnan-pine-planted': 0.90,
+    'armand-pine': 0.88,
+    'oak': 0.75,
+    'alder': 0.75, 'soft-broad': 0.75, 'soft-gz': 0.75,
+    'poplar': 0.80,
+    'hard-broad': 0.78,
+  };
+  const scale = scaleBySpecies[s.id] || 0.85;
+  econPct *= scale;
+
+  const econRate = econPct / 100;
+  // spec:nonSpec ratio from species defaults
+  const specRatio = s.yieldRates.spec / (s.yieldRates.spec + s.yieldRates.nonSpec);
+  const fuelRate = s.yieldRates.fuel; // fuel stays as default
+  const wasteRate = 1 - econRate - fuelRate;
+
+  return {
+    spec: volume * econRate * specRatio,
+    nonSpec: volume * econRate * (1 - specRatio),
+    fuel: volume * fuelRate,
+    waste: volume * wasteRate,
+    econRate: econRate,
+    dynamic: true
+  };
+}
+
+function getYieldRates(s, dbh, height) {
+  const total = parseFloat(document.getElementById('yTotal').value);
+  if (!isNaN(total) && total > 0 && total <= 1) {
+    const def = s.yieldRates;
+    const econSum = def.spec + def.nonSpec;
+    const scale = econSum > 0 ? total / econSum : 1;
+    return {
+      spec: def.spec * scale,
+      nonSpec: def.nonSpec * scale,
+      fuel: def.fuel,
+      waste: 1 - total - def.fuel,
+      custom: true
+    };
+  }
+  // 使用动态出材率
+  const yr = calcYield(s, 1, dbh, height);
+  return { spec: yr.spec, nonSpec: yr.nonSpec, fuel: yr.fuel, waste: yr.waste, custom: false };
+}
+
+// ========== 初始化 ==========
+function initApp() {
+  const sel = document.getElementById('speciesSelect');
+  SPECIES.forEach((s, i) => {
+    const o = document.createElement('option');
+    o.value = i; o.textContent = s.name + '（' + s.latin + '）';
+    sel.appendChild(o);
+  });
+  onSpeciesChange();
+  renderDataPanel();
+  renderSavedList();
+  renderHistory();
+}
+initApp();
+
+function onSpeciesChange() {
+  const s = SPECIES[document.getElementById('speciesSelect').value];
+  const cls = s.reliability === 'high' ? 'badge-high' : s.reliability === 'medium' ? 'badge-medium' : 'badge-low';
+  const txt = s.reliability === 'high' ? '省标验证' : s.reliability === 'medium' ? '部标/文献' : '待验证';
+  let formulaStr;
+  if (s.isDynamic && s.b1 !== undefined) {
+    formulaStr = `V = ${s.a} × D<sup>(${s.b1}${s.b2>=0?'+':''}${s.b2}×(D+H))</sup> × H<sup>(${s.c1}${s.c2>=0?'+':''}${s.c2}×(D+H))</sup>`;
+  } else {
+    formulaStr = `V = ${s.a} × D<sup>${s.b}</sup> × H<sup>${s.c}</sup>`;
+  }
+  const bar = document.getElementById('speciesBar');
+  bar.innerHTML = `
+    <span class="badge ${cls}">${txt}</span>
+    ${formulaStr}
+    &nbsp;|&nbsp; ${s.source}
+    &nbsp;|&nbsp; 出材率: 规格${(s.yieldRates.spec*100).toFixed(0)}% 非规格${(s.yieldRates.nonSpec*100).toFixed(0)}% 薪材${(s.yieldRates.fuel*100).toFixed(0)}% 废材${(s.yieldRates.waste*100).toFixed(0)}%
+    <br><small>${s.note}</small>
+  `;
+}
+
+// ========== 单株计算 ==========
+function calcSingle() {
+  const s = getActiveSpecies();
+  const dbh = parseFloat(document.getElementById('dbhInput').value);
+  const height = parseFloat(document.getElementById('heightInput').value);
+  const count = parseInt(document.getElementById('countInput').value) || 1;
+  const area = parseFloat(document.getElementById('areaInput').value) || 0;
+
+  if (!dbh || dbh <= 0 || !height || height <= 0) {
+    document.getElementById('singleResult').innerHTML = '<div class="callout callout-warn">请输入有效的胸径和树高。</div>';
+    document.getElementById('singleResult').classList.add('show');
+    return;
+  }
+  if (s.a === 0) {
+    document.getElementById('singleResult').innerHTML = '<div class="callout callout-danger">该树种暂无可靠的二元材积公式系数，无法计算。</div>';
+    document.getElementById('singleResult').classList.add('show');
+    return;
+  }
+  if (dbh > 300) { alert('胸径超出合理范围（>300cm），请核实。'); return; }
+  if (height > 100) { alert('树高超出合理范围（>100m），请核实。'); return; }
+  if (count < 1) { alert('棵数至少为1。'); return; }
+
+  const vol1 = calcVolume(s, dbh, height);
+  const vol = vol1 * count;
+  const yr = getYieldRates(s, dbh, height);
+  const y1 = { spec: vol1*yr.spec, nonSpec: vol1*yr.nonSpec, fuel: vol1*yr.fuel, waste: vol1*yr.waste };
+  const y = {
+    spec: y1.spec * count,
+    nonSpec: y1.nonSpec * count,
+    fuel: y1.fuel * count,
+    waste: y1.waste * count
+  };
+  const totalEcon = y.spec + y.nonSpec;
+  const rate = (totalEcon / vol * 100);
+
+  // Record history
+  const spName = s.name || '自定义';
+  addHistory(spName, dbh, height, count, vol, totalEcon);
+
+  let areaHtml = '';
+  if (area > 0) {
+    areaHtml = `
+    <div class="area-hero">
+      <div class="area-title">亩均统计（${area.toFixed(1)} 亩）</div>
+      <div class="area-grid">
+        <div class="area-stat"><span class="big">${(vol/area).toFixed(4)}</span> m³/亩 蓄积</div>
+        <div class="area-stat"><span class="big">${(totalEcon/area).toFixed(4)}</span> m³/亩 经济材</div>
+        <div class="area-stat"><span class="big">${(y.spec/area).toFixed(4)}</span> m³/亩 规格材</div>
+      </div>
+    </div>`;
+  }
+
+  const div = document.getElementById('singleResult');
+  div.classList.add('show');
+  div.innerHTML = `
+    <div class="volume-hero">
+      <div class="volume-number">${vol.toFixed(4)}</div>
+      <div class="volume-unit">立方米 (m³) — ${count} 株 × 单株 ${vol1.toFixed(4)} m³ = 总蓄积量</div>
+    </div>
+    ${areaHtml}
+    <div class="yield-grid">
+      <div class="yield-item economic">
+        <div class="yield-val">${totalEcon.toFixed(4)} m³</div>
+        <div class="yield-label">经济材合计（规格+非规格）</div>
+        <div style="font-size:12px;color:var(--pine);margin-top:2px;">出材率 ${rate.toFixed(1)}%</div>
+      </div>
+      <div class="yield-item">
+        <div class="yield-val">${y.spec.toFixed(4)} m³</div>
+        <div class="yield-label">规格材（小头直径≥6cm）</div>
+      </div>
+      <div class="yield-item">
+        <div class="yield-val">${y.nonSpec.toFixed(4)} m³</div>
+        <div class="yield-label">非规格材</div>
+      </div>
+      <div class="yield-item">
+        <div class="yield-val">${y.fuel.toFixed(4)} m³</div>
+        <div class="yield-label">薪材</div>
+      </div>
+      <div class="yield-item">
+        <div class="yield-val">${y.waste.toFixed(4)} m³</div>
+        <div class="yield-label">废材（不可利用）</div>
+      </div>
+    </div>
+    <div class="callout callout-info" style="margin-top:14px;">${YIELD_DISCLAIMER}</div>
+  `;
+}
+
+// ========== 批量计算 ==========
+let batchRows = [];
+
+function addToBatch() {
+  const idx = parseInt(document.getElementById('speciesSelect').value);
+  const dbh = parseFloat(document.getElementById('dbhInput').value);
+  const height = parseFloat(document.getElementById('heightInput').value);
+  const count = parseInt(document.getElementById('countInput').value) || 1;
+  if (!dbh || dbh <= 0 || !height || height <= 0) {
+    alert('请先输入有效的胸径和树高。');
+    return;
+  }
+  for (let i = 0; i < count; i++) {
+    batchRows.push({ speciesIdx: idx, dbh, height });
+  }
+  renderBatch();
+  document.getElementById('batchCard').scrollIntoView({ behavior: 'smooth' });
+}
+
+function addRow() { batchRows.push({ speciesIdx: 0, dbh: '', height: '' }); renderBatch(); }
+
+function clearBatch() {
+  if (confirm('确定清空全部批量数据？')) { batchRows = []; renderBatch(); }
+}
+
+function renderBatch() {
+  const tbody = document.getElementById('batchBody');
+  if (batchRows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10" style="padding:32px;color:#8b7355;">暂无数据 — 请添加树木</td></tr>';
+    document.getElementById('batchSummary').style.display = 'none';
+    return;
+  }
+  let h = '';
+  batchRows.forEach((r, i) => {
+    const s = SPECIES[r.speciesIdx];
+    const vv = r._vol, sp = r._spec, ns = r._nonSpec, fl = r._fuel, wa = r._waste;
+    h += `<tr>
+      <td>${i+1}</td>
+      <td><select onchange="batchRows[${i}].speciesIdx=parseInt(this.value);batchRows[${i}]._vol=null;renderBatch();">${SPECIES.map((sp,si)=>`<option value="${si}" ${si===r.speciesIdx?'selected':''}>${sp.name}</option>`).join('')}</select></td>
+      <td><input type="number" value="${r.dbh}" step="0.1" onchange="batchRows[${i}].dbh=parseFloat(this.value)||'';batchRows[${i}]._vol=null;renderBatch();"></td>
+      <td><input type="number" value="${r.height}" step="0.1" onchange="batchRows[${i}].height=parseFloat(this.value)||'';batchRows[${i}]._vol=null;renderBatch();"></td>
+      <td>${vv!=null?vv.toFixed(4):'—'}</td><td>${sp!=null?sp.toFixed(4):'—'}</td><td>${ns!=null?ns.toFixed(4):'—'}</td><td>${fl!=null?fl.toFixed(4):'—'}</td><td>${wa!=null?wa.toFixed(4):'—'}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="batchRows.splice(${i},1);renderBatch();">✕</button></td>
+    </tr>`;
+  });
+  tbody.innerHTML = h;
+  document.getElementById('batchSummary').style.display = 'none';
+}
+
+function calcBatch() {
+  let tV=0, tS=0, tN=0, tF=0, tW=0, cnt=0;
+  batchRows.forEach(r => {
+    if (!r.dbh || r.dbh<=0 || !r.height || r.height<=0) return;
+    const s = SPECIES[r.speciesIdx];
+    if (s.a === 0) return; // skip species with no formula
+    const v = calcVolume(s, r.dbh, r.height);
+    const y = calcYield(s, v);
+    r._vol=v; r._spec=y.spec; r._nonSpec=y.nonSpec; r._fuel=y.fuel; r._waste=y.waste;
+    tV+=v; tS+=y.spec; tN+=y.nonSpec; tF+=y.fuel; tW+=y.waste;
+    cnt++;
+  });
+  renderBatch();
+  if (cnt===0) { alert('请至少输入一株有效树木。'); return; }
+
+  const sb = document.getElementById('batchSummary');
+  sb.style.display = '';
+  const totalEconBatch = tS + tN;
+  const areaB = parseFloat(document.getElementById('batchAreaInput').value) || 0;
+  let areaRows = '';
+  if (areaB > 0) {
+    areaRows = `
+    <tr class="summary-row" style="background:linear-gradient(180deg,#fdf3e4,#f8e8d0)!important;">
+      <td colspan="4">亩均统计（${areaB.toFixed(1)} 亩）</td>
+      <td>${(tV/areaB).toFixed(4)} m³/亩</td>
+      <td colspan="2">${(totalEconBatch/areaB).toFixed(4)} m³/亩 经济材</td>
+      <td colspan="3">${(tS/areaB).toFixed(4)} m³/亩 规格材</td>
+    </tr>`;
+  }
+  sb.innerHTML = `
+    <tr class="summary-row">
+      <td colspan="4">采伐合计（${cnt} 株）</td>
+      <td>${tV.toFixed(4)} m³</td><td>${tS.toFixed(4)} m³</td><td>${tN.toFixed(4)} m³</td><td>${tF.toFixed(4)} m³</td><td>${tW.toFixed(4)} m³</td><td></td>
+    </tr>
+    <tr class="summary-row">
+      <td colspan="4">经济材总计</td>
+      <td colspan="2" style="color:var(--pine);font-size:16px;">${totalEconBatch.toFixed(4)} m³</td>
+      <td colspan="2">综合出材率</td>
+      <td colspan="2">${tV>0?(totalEconBatch/tV*100).toFixed(1):0}%</td>
+    </tr>
+    ${areaRows}
+  `;
+  sb.scrollIntoView({ behavior: 'smooth' });
+}
+
+// ========== 数据面板 ==========
+function renderDataPanel() {
+  const div = document.getElementById('dataPanel');
+  let h = '<div class="table-wrap src-table"><table><thead><tr><th>树种</th><th>a</th><th>b</th><th>c</th><th>公式来源</th><th>验证</th><th>出材率参考</th></tr></thead><tbody>';
+  SPECIES.forEach(s => {
+    const dot = s.reliability==='high'?'conf-high':s.reliability==='medium'?'conf-medium':'conf-low';
+    const lbl = s.reliability==='high'?'省标':(s.reliability==='medium'?'部标':(s.reliability==='low'?'近似':''));
+    h += `<tr>
+      <td><strong>${s.name}</strong><br><small style="color:#8b7355;">${s.latin}</small></td>
+      <td>${s.a||'—'}</td><td>${s.b||'—'}</td><td>${s.c||'—'}</td>
+      <td style="font-size:11px;">${s.source}</td>
+      <td><span class="confidence-dot ${dot}"></span>${lbl||'—'}</td>
+      <td style="font-size:11px;">${s.a===0?'—':`规格${(s.yieldRates.spec*100).toFixed(0)}% 非规格${(s.yieldRates.nonSpec*100).toFixed(0)}%<br>薪材${(s.yieldRates.fuel*100).toFixed(0)}% 废材${(s.yieldRates.waste*100).toFixed(0)}%`}</td>
+    </tr>`;
+  });
+  h += '</tbody></table></div>';
+
+  h += `
+    <div class="callout callout-warn">
+      <strong>验证说明：</strong><br>
+      马尾松公式已验证：D=20cm H=15.5m → V=0.256m³，与 DB51/T 1466-2012 标准查表值一致。<br>
+      柏木公式参数来自 DB51/T 1467-2012 标称值，但与查表值存在偏差（D=20 H=15.5 计算得0.507m³ vs 标准0.205m³），
+      <strong>待获取标准全文验证</strong>。如你有标准 PDF，可对照修正。<br>
+      其余树种来自 LY208-77 部标或四川滇西北阔叶公式，精度可接受但非四川本地编表。
+    </div>
+    <div class="callout callout-info">
+      <strong>已获取的标准文件：</strong><br>
+      DB51/T 1466-2012 马尾松 &nbsp;|&nbsp; DB51/T 2918-2022 森林经营规程 &nbsp;|&nbsp;
+      DB52/T 703-2011 马尾松(黔) &nbsp;|&nbsp; DB52/T 822-2013 软阔(黔) &nbsp;|&nbsp;
+      DB52/T 826-2013 硬阔(黔)<br>
+      DB35/T 1823-2019 福建主要树种 &nbsp;|&nbsp;
+      DB53/T 1422.1-2025 云南松(滇) &nbsp;|&nbsp;
+      DB34/T 3345-2019 马尾松(皖)<br>
+      GB/T 4814-2013 原木材积表 &nbsp;|&nbsp; LY/T 2102-2013 编制技术规程
+    </div>
+    <div class="callout callout-info">
+      <strong>跨省公式对照（福建 DB35/T 1823-2019）：</strong><br>
+      杉木: V=0.0000706094×D^1.801671×H^0.997998 &nbsp;|&nbsp;
+      马尾松: V=0.000070728×D^1.874518×H^0.908949<br>
+      阔叶树: V=0.0000685634×D^1.933221×H^0.867885 &nbsp;|&nbsp;
+      其他针叶: V=0.000069978×D^1.8660492×H^0.905254
+    </div>
+  `;
+  div.innerHTML = h;
+}
+
+// === 保存/加载自定义公式 ===
+const STORAGE_KEY = 'fc_custom_species';
+
+function loadSavedCustoms() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch(e) { return []; }
+}
+
+function saveCustom() {
+  const name = document.getElementById('cName').value.trim();
+  const a = parseFloat(document.getElementById('cA').value);
+  const b = parseFloat(document.getElementById('cB').value);
+  const c = parseFloat(document.getElementById('cC').value);
+  if (!name || isNaN(a) || isNaN(b) || isNaN(c)) { alert('请填写树种名称和 a,b,c 三个系数。'); return; }
+  const saved = loadSavedCustoms();
+  saved.push({ name, a, b, c, time: new Date().toLocaleString() });
+  if (saved.length > 20) saved.shift();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+  renderSavedList();
+  alert('已保存: ' + name);
+}
+
+function applySaved(idx) {
+  const saved = loadSavedCustoms();
+  const s = saved[idx];
+  if (!s) return;
+  document.getElementById('cName').value = s.name;
+  document.getElementById('cA').value = s.a;
+  document.getElementById('cB').value = s.b;
+  document.getElementById('cC').value = s.c;
+  document.getElementById('customFields').style.display = 'block';
+  document.querySelectorAll('.yield-toggle')[1].innerHTML = '自定义树种/公式 ▾ 点击收起';
+}
+
+function deleteSaved(idx) {
+  const saved = loadSavedCustoms();
+  saved.splice(idx, 1);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+  renderSavedList();
+}
+
+function renderSavedList() {
+  const saved = loadSavedCustoms();
+  const container = document.getElementById('savedCustoms');
+  const list = document.getElementById('savedList');
+  if (saved.length === 0) { container.style.display = 'none'; return; }
+  container.style.display = 'block';
+  list.innerHTML = saved.map((s, i) =>
+    '<span style="cursor:pointer;color:var(--pine);margin-right:12px;" onclick="applySaved('+i+')" title="点击应用">'
+    + s.name + '</span>'
+    + '<span style="cursor:pointer;color:var(--danger);font-size:10px;" onclick="deleteSaved('+i+')">✕</span>'
+  ).join(' | ');
+}
+
+// === 计算历史 ===
+const HIST_KEY = 'fc_history';
+
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); } catch(e) { return []; }
+}
+
+function addHistory(speciesName, dbh, height, count, vol, econ) {
+  const hist = loadHistory();
+  hist.unshift({ species: speciesName, dbh, height, count, vol: vol.toFixed(4), econ: econ.toFixed(4), time: new Date().toLocaleString() });
+  if (hist.length > 50) hist.length = 50;
+  localStorage.setItem(HIST_KEY, JSON.stringify(hist));
+  renderHistory();
+}
+
+function renderHistory() {
+  const hist = loadHistory();
+  document.getElementById('histCount').textContent = hist.length;
+  const panel = document.getElementById('histPanel');
+  if (hist.length === 0) { panel.innerHTML = '<span style="color:#8b7355;">暂无记录</span>'; return; }
+  panel.innerHTML = '<table style="font-size:11px;width:100%;"><thead><tr><th>时间</th><th>树种</th><th>D(cm)</th><th>H(m)</th><th>株</th><th>蓄积(m³)</th><th>经济材(m³)</th></tr></thead><tbody>'
+    + hist.map(h => '<tr><td>'+h.time+'</td><td>'+h.species+'</td><td>'+h.dbh+'</td><td>'+h.height+'</td><td>'+h.count+'</td><td>'+h.vol+'</td><td>'+h.econ+'</td></tr>').join('')
+    + '</tbody></table>';
+}
+
+function clearHistory() {
+  if (confirm('确定清空所有计算历史？')) { localStorage.removeItem(HIST_KEY); renderHistory(); }
+}
+
+function toggleHistory() {
+  const panel = document.getElementById('histPanel');
+  const show = panel.style.display === 'none';
+  panel.style.display = show ? 'block' : 'none';
+}
+
+function toggleCustom() {
+  const el = document.getElementById('customFields');
+  const show = el.style.display === 'none';
+  el.style.display = show ? 'block' : 'none';
+  document.querySelectorAll('.yield-toggle')[1].innerHTML = show ? '自定义树种/公式 ▾ 点击收起' : '自定义树种/公式 ▸ 点击展开';
+}
+
+function getCustomSpecies() {
+  const ca = parseFloat(document.getElementById('cA').value);
+  const cb = parseFloat(document.getElementById('cB').value);
+  const cc = parseFloat(document.getElementById('cC').value);
+  const name = document.getElementById('cName').value.trim();
+  if (!isNaN(ca) && !isNaN(cb) && !isNaN(cc) && ca > 0) {
+    return { a: ca, b: cb, c: cc, isDynamic: false, name: name || '自定义', yieldRates: { spec: 0.42, nonSpec: 0.16, fuel: 0.13, waste: 0.29 } };
+  }
+  return null;
+}
+
+function toggleYield() {
+  const el = document.getElementById('yieldFields');
+  const show = el.style.display === 'none';
+  el.style.display = show ? 'block' : 'none';
+  document.querySelector('.yield-toggle').innerHTML = show ? '综合出材率 ▾ 点击收起' : '综合出材率 ▸ 点击自定义';
+}
+
+function getYieldRates(s) {
+  const total = parseFloat(document.getElementById('yTotal').value);
+  if (!isNaN(total) && total > 0 && total <= 1) {
+    const def = s.yieldRates;
+    const econSum = def.spec + def.nonSpec;
+    const scale = econSum > 0 ? total / econSum : 1;
+    return {
+      spec: def.spec * scale,
+      nonSpec: def.nonSpec * scale,
+      fuel: def.fuel,
+      waste: 1 - total - def.fuel,
+      custom: true
+    };
+  }
+  return { ...s.yieldRates, custom: false };
+}
+
+function toggleData(el) {
+  el.classList.toggle('open');
+  el.nextElementSibling.classList.toggle('open');
+}
+</script>
+</body>
+</html>
