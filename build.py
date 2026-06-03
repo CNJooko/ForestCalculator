@@ -126,6 +126,9 @@ def build() -> Optional[Path]:
     INDEX_FILE = DIST_DIR / "index.html"
     INDEX_FILE.write_text(html, encoding="utf-8")
 
+    # 仓库根目录也生成 index.html（供分支部署模式）
+    (ROOT / "index.html").write_text(html, encoding="utf-8")
+
     # 更新缓存
     update_cache(sources)
 
