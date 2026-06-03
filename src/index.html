@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>木材蓄积量与出材量计算器</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Hero -->
+<header class="hero">
+  <div class="ring-decoration ring-1"></div>
+  <div class="ring-decoration ring-2"></div>
+  <div class="ring-decoration ring-3"></div>
+  <div class="hero-content">
+    <div class="logo-icon"></div>
+    <h1>木材蓄积量 · 出材量计算器</h1>
+    <div class="formula-display">V = a × D<sup>b</sup> × H<sup>c</sup> &nbsp;—&nbsp; 二元立木材积法</div>
+    <div class="location-tag">多省标准 · 自定义树种 · 动态出材率</div>
+  </div>
+</header>
+
+<div class="container">
+
+<!-- ====== 单株计算 ====== -->
+<div class="card" id="singleCard">
+  <div class="card-header">
+    <div class="icon"></div>
+    <h2>单株木材积计算</h2>
+  </div>
+
+  <div class="calc-grid cols-4">
+    <div class="form-group">
+      <label>树种</label>
+      <select id="speciesSelect" onchange="ForestCalc.onSpeciesChange()"></select>
+    </div>
+    <div class="form-group">
+      <label>胸径 DBH <span class="hint">cm</span></label>
+      <input type="number" id="dbhInput" placeholder="例: 24.5" step="0.1" min="1" max="300">
+    </div>
+    <div class="form-group">
+      <label>树高 H <span class="hint">m</span></label>
+      <input type="number" id="heightInput" placeholder="例: 15.0" step="0.1" min="1" max="100">
+    </div>
+    <div class="form-group">
+      <label>棵数 <span class="hint">相同规格的株数</span></label>
+      <input type="number" id="countInput" placeholder="1" value="1" step="1" min="1" max="99999">
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="density">每公顷株数</label>
+      <input type="number" id="density" placeholder="例如 1200" min="1" max="10000" value="1200" step="50" />
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="densityMu">每亩株数 <small style="color:var(--wood);">(1亩=667m²)</small></label>
+      <input type="number" id="densityMu" placeholder="例如 80" min="1" max="1000" value="0" step="5" />
+    </div>
+  </div>
+
+  <div class="species-bar" id="speciesBar"></div>
+
+  <div class="area-row">
+    <div class="form-group area-group">
+      <label>采伐面积(亩) <span class="hint">— 可选，填了就算亩均</span></label>
+      <input type="number" id="areaInput" placeholder="留空不计算亩均" step="0.1" min="0.1" max="99999">
+    </div>
+  </div>
+
+  <div class="yield-row" id="yieldCustom">
+    <span class="yield-toggle" onclick="ForestCalc.toggleYield()">综合出材率 ▸ 点击自定义</span>
+    <div class="yield-fields" id="yieldFields" style="display:none;">
+      <div class="yield-inputs">
+        <label>综合出材率 <input type="number" id="yTotal" placeholder="如 0.6" step="0.01" min="0" max="1" style="width:100px;"></label>
+        <span style="font-size:11px;color:#8b7355;align-self:center;">填一个数即可，如 0.6 = 60%。自动按默认比例分配规格/非规格/薪材/废材</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="yield-row">
+    <span class="yield-toggle" onclick="ForestCalc.toggleCustom()">自定义树种/公式 ▸ 点击展开</span>
+    <div class="yield-fields" id="customFields" style="display:none;">
+      <div class="yield-inputs">
+        <label>树种名称 <input type="text" id="cName" placeholder="如：自定柳杉" style="width:140px;"></label>
+        <label>a <input type="number" id="cA" placeholder="a" step="0.000000000001" style="width:130px;"></label>
+        <label>b <input type="number" id="cB" placeholder="b" step="0.000001"></label>
+        <label>c <input type="number" id="cC" placeholder="c" step="0.000001"></label>
+        <button class="btn btn-sm btn-outline" onclick="ForestCalc.saveCustom()" style="align-self:flex-end;">保存此公式</button>
+      </div>
+      <span style="font-size:11px;color:#8b7355;">公式 V = a × D<sup>b</sup> × H<sup>c</sup>。填 a,b,c 后优先使用。可保存到浏览器，下次使用。</span>
+    </div>
+  </div>
+
+  <!-- 保存的自定义树种 -->
+  <div class="yield-row" id="savedCustoms" style="display:none;">
+    <span style="font-size:12px;color:var(--bark);font-weight:600;">已保存的自定义：</span>
+    <span id="savedList" style="font-size:12px;"></span>
+  </div>
+
+  <!-- 计算历史 -->
+  <div class="yield-row">
+    <span class="yield-toggle" onclick="ForestCalc.toggleHistory()">计算历史 (<span id="histCount">0</span>条) ▸ 展开</span>
+    <div id="histPanel" style="display:none;margin-top:8px;max-height:200px;overflow-y:auto;font-size:12px;"></div>
+    <button class="btn btn-sm btn-danger" onclick="ForestCalc.clearHistoryUI()" style="margin-top:4px;">清空历史</button>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="ForestCalc.calcSingle()">计算蓄积量 & 出材量</button>
+    <button class="btn btn-outline" onclick="ForestCalc.addToBatch()">+ 加入批量列表</button>
+  </div>
+
+  <div class="result-panel" id="singleResult"></div>
+</div>
+
+<!-- ====== 批量计算 ====== -->
+<div class="card" id="batchCard">
+  <div class="card-header">
+    <div class="icon"></div>
+    <h2>批量采伐汇总</h2>
+  </div>
+  <p style="font-size:13px;color:#6b5d4f;margin-bottom:14px;">
+    添加多株树木进行采伐设计。手动逐行添加，或通过上方「加入批量列表」添加。
+  </p>
+  <div class="toolbar">
+    <button class="btn btn-outline btn-sm" onclick="ForestCalc.addRow()">+ 添加一行</button>
+    <button class="btn btn-primary btn-sm" id="btnBatchCalc" onclick="ForestCalc.calcBatch()">计算全部</button>
+    <button class="btn btn-outline btn-sm" id="btnCompare" style="margin-left:6px;" onclick="ForestCalc.showCompare()">📊 跨省对比</button>
+    <button class="btn btn-danger btn-sm" onclick="ForestCalc.clearBatch()">清空列表</button>
+    <span style="margin-left:16px;display:flex;align-items:center;gap:8px;">
+      <label style="font-size:13px;color:var(--bark);white-space:nowrap;">面积(亩):</label>
+      <input type="number" id="batchAreaInput" placeholder="可选" step="0.1" min="0.1" style="width:100px;padding:7px 10px;border:2px solid rgba(196,165,110,0.35);border-radius:6px;font-size:14px;font-family:inherit;">
+    </span>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th><th>树种</th><th>胸径 (cm)</th><th>树高 (m)</th>
+          <th>蓄积量 (m³)</th><th>规格材 (m³)</th><th>非规格材 (m³)</th>
+          <th>薪材 (m³)</th><th>废材 (m³)</th><th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="batchBody">
+        <tr><td colspan="10" style="padding:32px;color:#8b7355;">暂无数据 — 请添加树木</td></tr>
+      </tbody>
+      <tbody id="batchSummary" style="display:none;"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ====== 数据来源 ====== -->
+<div class="card">
+  <div class="collapsible-header" id="dataHeader" onclick="ForestCalc.toggleData(this)">
+    <div class="card-header" style="border:none;margin:0;padding:0;">
+      <div class="icon"></div>
+      <h2>数据来源 & 可靠性验证</h2>
+    </div>
+    <span class="arrow">▼</span>
+  </div>
+  <div class="collapsible-content" id="dataPanel"></div>
+</div>
+
+</div>
+
+<footer class="footer">
+  <span class="tree-divider">   </span>
+  <strong>二元立木材积公式</strong> &nbsp; V = a × D<sup>b</sup> × H<sup>c</sup> &nbsp;|&nbsp; 变指数模型 V = a × D<sup>b₁+b₂(D+H)</sup> × H<sup>c₁+c₂(D+H)</sup><br>
+  <strong>已获取标准 (8个)</strong>: DB51/T 1462(柳杉) | DB51/T 1466(马尾松) | DB51/T 2918(森林经营) | DB52/T 703(马尾松黔) | DB52/T 822(软阔黔) | DB52/T 826(硬阔黔) | DB35/T 1823(福建) | DB53/T 1422.1(云南松滇) | DB34/T 3345(马尾松皖)<br>
+  <strong>参考标准</strong>: LY208-77(部标) | LY/T 2102-2013(编制规程) | GB/T 4814-2013(原木检尺) | DB51/T 1464/1465/1467(四川已废止)<br>
+  支持多省标准 · 自定义树种公式 · 本地存储历史
+<br><small style="color:var(--wood-dark);">ForestCalculator v1.3.4 · 23个树种 · 多省标准交叉验证</small>
+</footer>
+
+<!-- JS 依赖顺序: species-db → storage → calculator → ui → app -->
+<script src="js/species-db.js"></script>
+<script src="js/storage.js"></script>
+<script src="js/calculator.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+
+<button class="theme-toggle" id="themeToggle" title="切换暗色/亮色主题" onclick="ForestCalc.toggleTheme()">🌙</button>
+
+</body>
+</html>

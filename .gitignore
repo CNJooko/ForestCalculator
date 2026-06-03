@@ -5,3 +5,8 @@ __pycache__/
 dist/
 build/
 *.spec
+.env
+tools/exports/
+tools/validation_report.md
+.DS_Store
+Thumbs.db
