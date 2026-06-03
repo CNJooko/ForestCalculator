@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.4.1] - 2026-06-03
+
+### Fixed
+- 收方表按钮点击无反应：HTML 缺少 `yieldTableOptions` 参数面板及 D 范围/步长输入框，JS `showYieldTable()` 访问 null 对象导致 TypeError 崩溃
+
 ## [1.4.0] - 2026-06-03
 
 ### Added

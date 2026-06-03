@@ -516,7 +516,7 @@ ForestCalc.showCompare = function() {
 // ========== 收方表生成 ==========
 ForestCalc.showYieldTable = function() {
   var panel = document.getElementById('yieldTableOptions');
-  if (panel.style.display === 'none' || panel.style.display === '') {
+  if (panel && (panel.style.display === 'none' || panel.style.display === '')) {
     panel.style.display = 'block';
   }
 

@@ -733,6 +733,21 @@ tbody input, tbody select {
     </span>
   </div>
 
+  <!-- 收方表参数面板 -->
+  <div id="yieldTableOptions" style="display:none;padding:12px 16px;background:rgba(196,165,110,0.05);border:1px solid rgba(196,165,110,0.15);border-radius:8px;margin-top:10px;">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <label style="font-size:13px;color:var(--bark);white-space:nowrap;">D范围:</label>
+      <input type="number" id="dMinYield" value="6" min="6" max="80" step="1" style="width:58px;padding:5px 6px;border:2px solid rgba(196,165,110,0.35);border-radius:4px;font-size:13px;text-align:center;">
+      <span style="font-size:13px;color:var(--bark);">~</span>
+      <input type="number" id="dMaxYield" value="40" min="6" max="80" step="1" style="width:58px;padding:5px 6px;border:2px solid rgba(196,165,110,0.35);border-radius:4px;font-size:13px;text-align:center;">
+      <span style="font-size:13px;color:var(--bark);">cm</span>
+      <label style="font-size:13px;color:var(--bark);white-space:nowrap;margin-left:8px;">步长:</label>
+      <input type="number" id="stepYield" value="2" min="1" max="10" step="1" style="width:48px;padding:5px 6px;border:2px solid rgba(196,165,110,0.35);border-radius:4px;font-size:13px;text-align:center;">
+      <span style="font-size:13px;color:var(--bark);">cm</span>
+      <button class="btn btn-primary btn-sm" onclick="ForestCalc.showYieldTable()" style="margin-left:8px;">生成收方表</button>
+    </div>
+  </div>
+
   <div class="table-wrap">
     <table>
       <thead>
@@ -770,7 +785,7 @@ tbody input, tbody select {
   <strong>已获取标准 (8个)</strong>: DB51/T 1462(柳杉) | DB51/T 1466(马尾松) | DB51/T 2918(森林经营) | DB52/T 703(马尾松黔) | DB52/T 822(软阔黔) | DB52/T 826(硬阔黔) | DB35/T 1823(福建) | DB53/T 1422.1(云南松滇) | DB34/T 3345(马尾松皖)<br>
   <strong>参考标准</strong>: LY208-77(部标) | LY/T 2102-2013(编制规程) | GB/T 4814-2013(原木检尺) | DB51/T 1464/1465/1467(四川已废止)<br>
   支持多省标准 · 自定义树种公式 · 本地存储历史
-<br><small style="color:var(--wood-dark);">ForestCalculator v1.4.0 · 23个树种 · 多省标准交叉验证</small>
+<br><small style="color:var(--wood-dark);">ForestCalculator v1.4.1 · 23个树种 · 多省标准交叉验证</small>
 </footer>
 
 <!-- JS 依赖顺序: species-db → storage → calculator → ui → app -->
@@ -1672,7 +1687,7 @@ ForestCalc.showCompare = function() {
 // ========== 收方表生成 ==========
 ForestCalc.showYieldTable = function() {
   var panel = document.getElementById('yieldTableOptions');
-  if (panel.style.display === 'none' || panel.style.display === '') {
+  if (panel && (panel.style.display === 'none' || panel.style.display === '')) {
     panel.style.display = 'block';
   }
 
