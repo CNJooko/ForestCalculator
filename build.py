@@ -122,11 +122,15 @@ def build() -> Optional[Path]:
     OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_FILE.write_text(html, encoding="utf-8")
 
+    # 同时生成 index.html 供 GitHub Pages 使用
+    INDEX_FILE = DIST_DIR / "index.html"
+    INDEX_FILE.write_text(html, encoding="utf-8")
+
     # 更新缓存
     update_cache(sources)
 
     size_kb = OUTPUT_FILE.stat().st_size / 1024
-    print(f"构建完成: {OUTPUT_FILE} ({size_kb:.1f} KB)")
+    print(f"构建完成: {OUTPUT_FILE} ({size_kb:.1f} KB), index.html ({size_kb:.1f} KB)")
     return OUTPUT_FILE
 
 

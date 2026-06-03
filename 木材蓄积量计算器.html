@@ -550,6 +550,55 @@ tbody input, tbody select {
   .hero h1 { font-size: 26px; }
   .volume-hero .volume-number { font-size: 36px; }
 }
+
+/* ========== Print Styles ========== */
+@media print {
+  body {
+    background: #fff !important;
+    color: #1a1a1a !important;
+    font-size: 11pt;
+  }
+
+  .navbar, .calc-grid, .btn, .theme-toggle, footer, .result-card, .batch-actions {
+    display: none !important;
+  }
+
+  .batch-panel, #batchSummary, #batchCard {
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  .batch-panel .panel, #batchCard {
+    border: 1px solid #ccc !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    padding: 8px !important;
+    margin: 0 !important;
+  }
+
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    font-size: 10pt !important;
+    color: #000 !important;
+  }
+
+  th {
+    background: #eee !important;
+    color: #000 !important;
+    border-bottom: 1px solid #999 !important;
+  }
+
+  td, th {
+    padding: 3px 6px !important;
+    border: 1px solid #ddd !important;
+  }
+
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+}
 </style>
 </head>
 <body>
@@ -599,6 +648,13 @@ tbody input, tbody select {
     <div class="form-group">
       <label for="density">每公顷株数</label>
       <input type="number" id="density" placeholder="例如 1200" min="1" max="10000" value="1200" step="50" />
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label for="densityMu">每亩株数 <small style="color:var(--wood);">(1亩=667m²)</small></label>
+      <input type="number" id="densityMu" placeholder="例如 80" min="1" max="1000" value="0" step="5" />
     </div>
   </div>
 
@@ -669,6 +725,7 @@ tbody input, tbody select {
     <button class="btn btn-outline btn-sm" onclick="ForestCalc.addRow()">+ 添加一行</button>
     <button class="btn btn-primary btn-sm" id="btnBatchCalc" onclick="ForestCalc.calcBatch()">计算全部</button>
     <button class="btn btn-outline btn-sm" id="btnCompare" style="margin-left:6px;" onclick="ForestCalc.showCompare()">📊 跨省对比</button>
+    <button id="btnYieldTable" class="btn btn-outline btn-sm" style="margin-left:6px;" onclick="ForestCalc.showYieldTable()">📋 收方表</button>
     <button class="btn btn-danger btn-sm" onclick="ForestCalc.clearBatch()">清空列表</button>
     <span style="margin-left:16px;display:flex;align-items:center;gap:8px;">
       <label style="font-size:13px;color:var(--bark);white-space:nowrap;">面积(亩):</label>
@@ -713,12 +770,12 @@ tbody input, tbody select {
   <strong>已获取标准 (8个)</strong>: DB51/T 1462(柳杉) | DB51/T 1466(马尾松) | DB51/T 2918(森林经营) | DB52/T 703(马尾松黔) | DB52/T 822(软阔黔) | DB52/T 826(硬阔黔) | DB35/T 1823(福建) | DB53/T 1422.1(云南松滇) | DB34/T 3345(马尾松皖)<br>
   <strong>参考标准</strong>: LY208-77(部标) | LY/T 2102-2013(编制规程) | GB/T 4814-2013(原木检尺) | DB51/T 1464/1465/1467(四川已废止)<br>
   支持多省标准 · 自定义树种公式 · 本地存储历史
-<br><small style="color:var(--wood-dark);">ForestCalculator v1.3.3 · 23个树种 · 多省标准交叉验证</small>
+<br><small style="color:var(--wood-dark);">ForestCalculator v1.4.0 · 23个树种 · 多省标准交叉验证</small>
 </footer>
 
 <!-- JS 依赖顺序: species-db → storage → calculator → ui → app -->
 <script>
-// ========== 树种数据库 + 常量 + 工具函数 ==========
+﻿// ========== 树种数据库 + 常量 + 工具函数 ==========
 // 此文件必须最先加载，为所有后续模块提供基础数据
 
 var ForestCalc = window.ForestCalc || {};
@@ -882,28 +939,28 @@ ForestCalc.SPECIES = [
     a: 0.0000706094, b: 1.801671, c: 0.997998, isDynamic: false,
     source: 'DB35/T 1823-2019 福建省主要树种二元立木材积表', reliability: 'high',
     yieldRates: { spec: 0.55, nonSpec: 0.20, fuel: 0.05, waste: 0.20 },
-    note: '福建2019年新编表。D=20 H=15→0.240m³。精度高于LY208-77旧标'
+    note: '福建2019年新编表。D=20 H=15→0.2326m³。精度高于LY208-77旧标'
   },
   {
     id: 'masson-pine-fj', name: '马尾松(福建·2019)', latin: 'Pinus massoniana (Fujian)',
     a: 0.000070728, b: 1.874518, c: 0.908949, isDynamic: false,
     source: 'DB35/T 1823-2019 福建省主要树种二元立木材积表', reliability: 'high',
     yieldRates: { spec: 0.60, nonSpec: 0.20, fuel: 0.05, waste: 0.15 },
-    note: '福建2019年新编表。D=20 H=15→0.235m³。与四川DB51/本地表参数不同'
+    note: '福建2019年新编表。D=20 H=15→0.2277m³。与四川DB51/本地表参数不同'
   },
   {
     id: 'broadleaf-fj', name: '阔叶树(福建·2019)', latin: 'Broadleaf spp. (Fujian)',
     a: 0.0000685634, b: 1.933221, c: 0.867885, isDynamic: false,
     source: 'DB35/T 1823-2019 福建省主要树种二元立木材积表', reliability: 'high',
     yieldRates: { spec: 0.45, nonSpec: 0.17, fuel: 0.08, waste: 0.30 },
-    note: '福建阔叶树通用公式，涵盖桉树相思等速生树种。D=20 H=15→0.242m³'
+    note: '福建阔叶树通用公式，涵盖桉树相思等速生树种。D=20 H=15→0.2355m³'
   },
   {
     id: 'other-conifer-fj', name: '其他针叶(福建·2019)', latin: 'Other conifer spp. (Fujian)',
     a: 0.000069978, b: 1.8660492, c: 0.905254, isDynamic: false,
     source: 'DB35/T 1823-2019 福建省主要树种二元立木材积表', reliability: 'high',
     yieldRates: { spec: 0.50, nonSpec: 0.18, fuel: 0.07, waste: 0.25 },
-    note: '福建其他针叶通用公式，涵盖火炬松湿地松等。D=20 H=15→0.224m³'
+    note: '福建其他针叶通用公式，涵盖火炬松湿地松等。D=20 H=15→0.2175m³'
   }
 ];
 
@@ -928,6 +985,7 @@ ForestCalc.getCustomSpecies = function() {
   }
   return null;
 };
+
 </script>
 <script>
 // ========== 本地存储操作（纯数据读写，无 DOM 操作） ==========
@@ -1023,6 +1081,58 @@ ForestCalc.calcPerHectare = function(singleVol, yieldResult, density) {
     totalWaste: yieldResult.waste * density,
     density: density
   };
+};
+
+/**
+ * 亩蓄积量计算
+ * @param {number} singleVol - 单株材积 (m³)
+ * @param {Object} yieldResult - 出材率计算结果
+ * @param {number} density - 每亩株数
+ * @returns {{ totalVolume: number, totalSpec: number, totalNonSpec: number, totalFuel: number, totalWaste: number, density: number, perMu: boolean }}
+ */
+ForestCalc.calcPerMu = function(singleVol, yieldResult, density) {
+  density = Math.max(1, Math.min(1000, density || 0));
+  return {
+    totalVolume: singleVol * density,
+    totalSpec: yieldResult.spec * density,
+    totalNonSpec: yieldResult.nonSpec * density,
+    totalFuel: yieldResult.fuel * density,
+    totalWaste: yieldResult.waste * density,
+    density: density,
+    perMu: true
+  };
+};
+
+/**
+ * 生成收方表（D从dMin到dMax，步长step，H自动估算为 D*ratio）
+ */
+ForestCalc.generateYieldTable = function(speciesId, dMin, dMax, step, hRatio) {
+  dMin = Math.max(6, dMin || 6);
+  dMax = Math.min(80, dMax || 60);
+  step = step || 2;
+  hRatio = hRatio || 0.75;
+
+  var sp = ForestCalc.SPECIES.find(function(s) { return s.id === speciesId; });
+  if (!sp) return null;
+
+  var rows = [];
+  for (var d = dMin; d <= dMax; d += step) {
+    var h = +(d * hRatio).toFixed(1);
+    var vol = ForestCalc.calcVolume(sp, d, h);
+    if (vol === null) continue;
+    var y = ForestCalc.calcYield(sp, vol, d, h);
+    rows.push({
+      dbh: d,
+      height: h,
+      volume: vol,
+      specVol: y.spec,
+      nonSpecVol: y.nonSpec,
+      fuelVol: y.fuel,
+      wasteVol: y.waste,
+      econRate: y.econRate
+    });
+  }
+  return { species: sp, rows: rows };
 };
 
 // 获取出材率分配（支持用户自定义综合出材率）
@@ -1161,6 +1271,24 @@ ForestCalc.calcSingle = function() {
       '</table></div>';
   }
 
+  // 亩蓄积量计算
+  var densityMuVal = parseInt(document.getElementById('densityMu').value) || 0;
+  var muHtml = '';
+  if (densityMuVal > 0) {
+    var muInput = { spec: y1.spec, nonSpec: y1.nonSpec, fuel: y1.fuel, waste: y1.waste };
+    var mu = ForestCalc.calcPerMu(vol1, muInput, densityMuVal);
+    muHtml =
+    '<div style="margin-top:8px;padding:10px;background:rgba(196,165,110,0.06);border-radius:8px;border:1px solid rgba(196,165,110,0.15);">' +
+      '<h4 style="margin:0 0 6px 0;">📐 亩蓄积量 (' + densityMuVal + ' 株/亩)</h4>' +
+      '<table style="width:100%;font-size:13px;">' +
+      '<tr><td>总蓄积</td><td style="text-align:right;font-weight:bold;">' + mu.totalVolume.toFixed(3) + ' m³</td></tr>' +
+      '<tr><td>规格材</td><td style="text-align:right;">' + mu.totalSpec.toFixed(3) + ' m³</td></tr>' +
+      '<tr><td>非规格材</td><td style="text-align:right;">' + mu.totalNonSpec.toFixed(3) + ' m³</td></tr>' +
+      '<tr><td>薪材</td><td style="text-align:right;">' + mu.totalFuel.toFixed(3) + ' m³</td></tr>' +
+      '<tr><td>废材</td><td style="text-align:right;">' + mu.totalWaste.toFixed(3) + ' m³</td></tr>' +
+      '</table></div>';
+  }
+
   var div = document.getElementById('singleResult');
   div.classList.add('show');
   div.innerHTML =
@@ -1170,6 +1298,7 @@ ForestCalc.calcSingle = function() {
     '</div>' +
     areaHtml +
     hectareHtml +
+    muHtml +
     '<div class="yield-grid">' +
       '<div class="yield-item economic">' +
         '<div class="yield-val">' + totalEcon.toFixed(4) + ' m³</div>' +
@@ -1304,6 +1433,31 @@ ForestCalc.calcBatch = function() {
     '</tr>' +
     areaRows +
     hectareRow;
+
+  // 统计摘要
+  var validRows = ForestCalc.batchRows.filter(function(r) { return r._vol != null; });
+  if (validRows.length > 1) {
+    var vols = [], specs = [], nonSpecs = [], fuels = [], wastes = [];
+    validRows.forEach(function(r) {
+      vols.push(r._vol); specs.push(r._spec); nonSpecs.push(r._nonSpec); fuels.push(r._fuel); wastes.push(r._waste);
+    });
+    var avg = function(arr) { return arr.reduce(function(a,b) { return a+b; }, 0) / arr.length; };
+    var min = function(arr) { return Math.min.apply(null, arr); };
+    var max = function(arr) { return Math.max.apply(null, arr); };
+
+    sb.innerHTML +=
+    '<tr><td colspan="10">' +
+    '<div style="margin-top:10px;padding:8px;background:rgba(196,165,110,0.06);border-radius:6px;">' +
+    '<h5 style="margin:0 0 6px 0;">📊 统计摘要 (' + validRows.length + ' 条有效数据)</h5>' +
+    '<table style="width:100%;font-size:12px;">' +
+    '<tr style="border-bottom:1px solid rgba(196,165,110,0.15);"><th></th><th>单株材积</th><th>规格材</th><th>非规格材</th><th>薪材</th><th>废材</th></tr>' +
+    '<tr><td>平均</td><td>' + avg(vols).toFixed(4) + '</td><td>' + avg(specs).toFixed(4) + '</td><td>' + avg(nonSpecs).toFixed(4) + '</td><td>' + avg(fuels).toFixed(4) + '</td><td>' + avg(wastes).toFixed(4) + '</td></tr>' +
+    '<tr><td>最小</td><td>' + min(vols).toFixed(4) + '</td><td>' + min(specs).toFixed(4) + '</td><td>' + min(nonSpecs).toFixed(4) + '</td><td>' + min(fuels).toFixed(4) + '</td><td>' + min(wastes).toFixed(4) + '</td></tr>' +
+    '<tr><td>最大</td><td>' + max(vols).toFixed(4) + '</td><td>' + max(specs).toFixed(4) + '</td><td>' + max(nonSpecs).toFixed(4) + '</td><td>' + max(fuels).toFixed(4) + '</td><td>' + max(wastes).toFixed(4) + '</td></tr>' +
+    '</table></div>' +
+    '</td></tr>';
+  }
+
   sb.scrollIntoView({ behavior: 'smooth' });
 };
 
@@ -1513,6 +1667,68 @@ ForestCalc.showCompare = function() {
   container.innerHTML = html;
   container.style.display = '';
   document.getElementById('batchCard').scrollIntoView({ behavior: 'smooth' });
+};
+
+// ========== 收方表生成 ==========
+ForestCalc.showYieldTable = function() {
+  var panel = document.getElementById('yieldTableOptions');
+  if (panel.style.display === 'none' || panel.style.display === '') {
+    panel.style.display = 'block';
+  }
+
+  var speciesId = ForestCalc.SPECIES[document.getElementById('speciesSelect').value]?.id;
+  if (!speciesId) { alert('请先选择树种'); return; }
+
+  var dMin = parseInt(document.getElementById('dMinYield')?.value) || 6;
+  var dMax = parseInt(document.getElementById('dMaxYield')?.value) || 40;
+  var step = parseInt(document.getElementById('stepYield')?.value) || 2;
+
+  var result = ForestCalc.generateYieldTable(speciesId, dMin, dMax, step, 0.75);
+  if (!result) { alert('生成失败，请检查树种数据'); return; }
+
+  var rows = result.rows;
+  var html = '<div style="margin-top:16px;">';
+  html += '<h4>📋 ' + result.species.name + ' 收方表 (D ' + dMin + '~' + dMax + 'cm, 步长 ' + step + 'cm, H≈D×0.75)</h4>';
+  html += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">';
+  html += '<thead><tr style="background:rgba(196,165,110,0.12);">';
+  html += '<th>D(cm)</th><th>H(m)</th><th>材积(m³)</th><th>规格材</th><th>非规格材</th><th>薪材</th><th>废材</th><th>经济材率</th>';
+  html += '</tr></thead><tbody>';
+
+  rows.forEach(function(r) {
+    html += '<tr style="border-bottom:1px solid rgba(196,165,110,0.1);">';
+    html += '<td>' + r.dbh + '</td>';
+    html += '<td>' + r.height + '</td>';
+    html += '<td style="font-weight:bold;">' + r.volume.toFixed(4) + '</td>';
+    html += '<td>' + r.specVol.toFixed(4) + '</td>';
+    html += '<td>' + r.nonSpecVol.toFixed(4) + '</td>';
+    html += '<td>' + r.fuelVol.toFixed(4) + '</td>';
+    html += '<td>' + r.wasteVol.toFixed(4) + '</td>';
+    html += '<td>' + (r.econRate * 100).toFixed(1) + '%</td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+
+  // 亩/公顷合计
+  var density = parseInt(document.getElementById('density').value) || 0;
+  var densityMu = parseInt(document.getElementById('densityMu').value) || 0;
+  if (density > 0 || densityMu > 0) {
+    html += '<div style="margin-top:8px;">';
+    if (density > 0) {
+      html += '<p style="font-size:12px;color:var(--wood);">📐 公顷合计: 总蓄积 ' + (rows.reduce(function(s,r){return s+r.volume;},0) * density).toFixed(2) + ' m³ (' + density + ' 株/公顷 × ' + rows.length + ' 级)</p>';
+    }
+    if (densityMu > 0) {
+      html += '<p style="font-size:12px;color:var(--wood);">📐 亩合计: 总蓄积 ' + (rows.reduce(function(s,r){return s+r.volume;},0) * densityMu).toFixed(2) + ' m³ (' + densityMu + ' 株/亩 × ' + rows.length + ' 级)</p>';
+    }
+    html += '</div>';
+  }
+
+  html += '</div>';
+
+  var container = document.getElementById('batchSummary');
+  container.innerHTML = html;
+  document.getElementById('batchCard').style.display = 'block';
+  container.scrollIntoView({ behavior: 'smooth' });
 };
 </script>
 <script>
