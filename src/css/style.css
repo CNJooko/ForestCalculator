@@ -540,3 +540,52 @@ tbody input, tbody select {
   .hero h1 { font-size: 26px; }
   .volume-hero .volume-number { font-size: 36px; }
 }
+
+/* ========== Print Styles ========== */
+@media print {
+  body {
+    background: #fff !important;
+    color: #1a1a1a !important;
+    font-size: 11pt;
+  }
+
+  .navbar, .calc-grid, .btn, .theme-toggle, footer, .result-card, .batch-actions {
+    display: none !important;
+  }
+
+  .batch-panel, #batchSummary, #batchCard {
+    display: block !important;
+    visibility: visible !important;
+  }
+
+  .batch-panel .panel, #batchCard {
+    border: 1px solid #ccc !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    padding: 8px !important;
+    margin: 0 !important;
+  }
+
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    font-size: 10pt !important;
+    color: #000 !important;
+  }
+
+  th {
+    background: #eee !important;
+    color: #000 !important;
+    border-bottom: 1px solid #999 !important;
+  }
+
+  td, th {
+    padding: 3px 6px !important;
+    border: 1px solid #ddd !important;
+  }
+
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+}

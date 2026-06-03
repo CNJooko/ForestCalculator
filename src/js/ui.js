@@ -512,3 +512,65 @@ ForestCalc.showCompare = function() {
   container.style.display = '';
   document.getElementById('batchCard').scrollIntoView({ behavior: 'smooth' });
 };
+
+// ========== 收方表生成 ==========
+ForestCalc.showYieldTable = function() {
+  var panel = document.getElementById('yieldTableOptions');
+  if (panel.style.display === 'none' || panel.style.display === '') {
+    panel.style.display = 'block';
+  }
+
+  var speciesId = ForestCalc.SPECIES[document.getElementById('speciesSelect').value]?.id;
+  if (!speciesId) { alert('请先选择树种'); return; }
+
+  var dMin = parseInt(document.getElementById('dMinYield')?.value) || 6;
+  var dMax = parseInt(document.getElementById('dMaxYield')?.value) || 40;
+  var step = parseInt(document.getElementById('stepYield')?.value) || 2;
+
+  var result = ForestCalc.generateYieldTable(speciesId, dMin, dMax, step, 0.75);
+  if (!result) { alert('生成失败，请检查树种数据'); return; }
+
+  var rows = result.rows;
+  var html = '<div style="margin-top:16px;">';
+  html += '<h4>📋 ' + result.species.name + ' 收方表 (D ' + dMin + '~' + dMax + 'cm, 步长 ' + step + 'cm, H≈D×0.75)</h4>';
+  html += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">';
+  html += '<thead><tr style="background:rgba(196,165,110,0.12);">';
+  html += '<th>D(cm)</th><th>H(m)</th><th>材积(m³)</th><th>规格材</th><th>非规格材</th><th>薪材</th><th>废材</th><th>经济材率</th>';
+  html += '</tr></thead><tbody>';
+
+  rows.forEach(function(r) {
+    html += '<tr style="border-bottom:1px solid rgba(196,165,110,0.1);">';
+    html += '<td>' + r.dbh + '</td>';
+    html += '<td>' + r.height + '</td>';
+    html += '<td style="font-weight:bold;">' + r.volume.toFixed(4) + '</td>';
+    html += '<td>' + r.specVol.toFixed(4) + '</td>';
+    html += '<td>' + r.nonSpecVol.toFixed(4) + '</td>';
+    html += '<td>' + r.fuelVol.toFixed(4) + '</td>';
+    html += '<td>' + r.wasteVol.toFixed(4) + '</td>';
+    html += '<td>' + (r.econRate * 100).toFixed(1) + '%</td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+
+  // 亩/公顷合计
+  var density = parseInt(document.getElementById('density').value) || 0;
+  var densityMu = parseInt(document.getElementById('densityMu').value) || 0;
+  if (density > 0 || densityMu > 0) {
+    html += '<div style="margin-top:8px;">';
+    if (density > 0) {
+      html += '<p style="font-size:12px;color:var(--wood);">📐 公顷合计: 总蓄积 ' + (rows.reduce(function(s,r){return s+r.volume;},0) * density).toFixed(2) + ' m³ (' + density + ' 株/公顷 × ' + rows.length + ' 级)</p>';
+    }
+    if (densityMu > 0) {
+      html += '<p style="font-size:12px;color:var(--wood);">📐 亩合计: 总蓄积 ' + (rows.reduce(function(s,r){return s+r.volume;},0) * densityMu).toFixed(2) + ' m³ (' + densityMu + ' 株/亩 × ' + rows.length + ' 级)</p>';
+    }
+    html += '</div>';
+  }
+
+  html += '</div>';
+
+  var container = document.getElementById('batchSummary');
+  container.innerHTML = html;
+  document.getElementById('batchCard').style.display = 'block';
+  container.scrollIntoView({ behavior: 'smooth' });
+};

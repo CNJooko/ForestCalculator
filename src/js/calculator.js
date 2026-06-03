@@ -82,6 +82,38 @@ ForestCalc.calcPerMu = function(singleVol, yieldResult, density) {
   };
 };
 
+/**
+ * 生成收方表（D从dMin到dMax，步长step，H自动估算为 D*ratio）
+ */
+ForestCalc.generateYieldTable = function(speciesId, dMin, dMax, step, hRatio) {
+  dMin = Math.max(6, dMin || 6);
+  dMax = Math.min(80, dMax || 60);
+  step = step || 2;
+  hRatio = hRatio || 0.75;
+
+  var sp = ForestCalc.SPECIES.find(function(s) { return s.id === speciesId; });
+  if (!sp) return null;
+
+  var rows = [];
+  for (var d = dMin; d <= dMax; d += step) {
+    var h = +(d * hRatio).toFixed(1);
+    var vol = ForestCalc.calcVolume(sp, d, h);
+    if (vol === null) continue;
+    var y = ForestCalc.calcYield(sp, vol, d, h);
+    rows.push({
+      dbh: d,
+      height: h,
+      volume: vol,
+      specVol: y.spec,
+      nonSpecVol: y.nonSpec,
+      fuelVol: y.fuel,
+      wasteVol: y.waste,
+      econRate: y.econRate
+    });
+  }
+  return { species: sp, rows: rows };
+};
+
 // 获取出材率分配（支持用户自定义综合出材率）
 ForestCalc.getYieldRates = function(s) {
   var total = parseFloat(document.getElementById('yTotal').value);
