@@ -11,7 +11,7 @@ ForestCalc._undoStack = [];
 ForestCalc._pushUndo = function() {
   if (ForestCalc._undoStack.length >= 10) ForestCalc._undoStack.shift();
   ForestCalc._undoStack.push(ForestCalc.batchRows.map(function(r) {
-    return { speciesIdx: r.speciesIdx, dbh: r.dbh, height: r.height, _vol: r._vol, _spec: r._spec, _nonSpec: r._nonSpec, _fuel: r._fuel, _waste: r._waste };
+    return { speciesIdx: r.speciesIdx, dbh: r.dbh, height: r.height, count: r.count || 1, _vol: r._vol, _spec: r._spec, _nonSpec: r._nonSpec, _fuel: r._fuel, _waste: r._waste };
   }));
   document.getElementById('btnUndo').disabled = false;
 };
@@ -110,7 +110,27 @@ ForestCalc.initApp = function() {
         }
       });
     }
+    dbhInput.addEventListener('blur', function() {
+      var dbh = parseFloat(this.value);
+      if (!dbh || dbh <= 0) return;
+      var hInput = document.getElementById('heightInput');
+      var hVal = parseFloat(hInput.value);
+      if (!isNaN(hVal) && hVal > 0) return;
+      var selSpecies = ForestCalc.SPECIES[document.getElementById('speciesSelect').value];
+      var hRatio = (selSpecies && selSpecies.defaultHRatio) ? selSpecies.defaultHRatio : 0.75;
+      var height = Math.round(dbh * hRatio * 10) / 10;
+      hInput.value = height;
+      ForestCalc.showToast('已自动填入树高 H=' + height + 'm（H/D=' + hRatio.toFixed(2) + '）', 'info');
+    });
   }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !e.target.closest('input,textarea,select')) {
+      var csvPanel = document.getElementById('csvImportPanel');
+      var ytPanel = document.getElementById('yieldTableOptions');
+      if (csvPanel && csvPanel.style.display !== 'none') { csvPanel.style.display = 'none'; return; }
+      if (ytPanel && ytPanel.style.display === 'block') { ytPanel.style.display = 'none'; return; }
+    }
+  });
 };
 
 // ========== 树种切换 ==========
@@ -284,15 +304,13 @@ ForestCalc.addToBatch = function() {
     ForestCalc.showToast('请先输入有效的胸径和树高。', 'warn');
     return;
   }
-  for (var i = 0; i < count; i++) {
-    ForestCalc.batchRows.push({ speciesIdx: idx, dbh: dbh, height: height });
-  }
+  ForestCalc.batchRows.push({ speciesIdx: idx, dbh: dbh, height: height, count: count });
   ForestCalc.renderBatch();
   document.getElementById('batchCard').scrollIntoView({ behavior: 'smooth' });
 };
 
 ForestCalc.addRow = function() {
-  ForestCalc.batchRows.push({ speciesIdx: 0, dbh: '', height: '' });
+  ForestCalc.batchRows.push({ speciesIdx: 0, dbh: '', height: '', count: 1 });
   ForestCalc.renderBatch();
 };
 
@@ -306,7 +324,7 @@ ForestCalc.clearBatch = function() {
 
 ForestCalc.copyBatchRow = function(idx) {
   var row = ForestCalc.batchRows[idx];
-  var copy = { speciesIdx: row.speciesIdx, dbh: row.dbh, height: row.height };
+  var copy = { speciesIdx: row.speciesIdx, dbh: row.dbh, height: row.height, count: row.count || 1 };
   ForestCalc.batchRows.splice(idx + 1, 0, copy);
   ForestCalc.renderBatch();
 };
@@ -342,7 +360,7 @@ ForestCalc.importCSV = function() {
     var count = parts.length >= 3 ? parseInt(parts[2]) : 1;
     if (isNaN(dbh) || isNaN(height) || dbh <= 0 || height <= 0 || count < 1) continue;
     for (var j = 0; j < count; j++) {
-      ForestCalc.batchRows.push({ speciesIdx: speciesIdx, dbh: dbh, height: height });
+      ForestCalc.batchRows.push({ speciesIdx: speciesIdx, dbh: dbh, height: height, count: 1 });
       imported++;
     }
   }
@@ -355,7 +373,7 @@ ForestCalc.importCSV = function() {
 ForestCalc.renderBatch = function() {
   var tbody = document.getElementById('batchBody');
   if (ForestCalc.batchRows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="10" style="padding:32px;color:#8b7355;">暂无数据 — 请添加树木</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11" style="padding:32px;color:#8b7355;">暂无数据 — 请添加树木</td></tr>';
     document.getElementById('batchSummary').style.display = 'none';
     return;
   }
@@ -372,6 +390,7 @@ ForestCalc.renderBatch = function() {
       '<td><select onchange="ForestCalc.batchRows[' + i + '].speciesIdx=parseInt(this.value);ForestCalc.batchRows[' + i + ']._vol=null;if(document.getElementById(\'batchSummary\').style.display!==\'none\')ForestCalc.calcBatch();else ForestCalc.renderBatch();">' + speciesOptions + '</select></td>' +
       '<td><input type="number" value="' + r.dbh + '" step="0.1" onchange="ForestCalc.batchRows[' + i + '].dbh=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
       '<td><input type="number" value="' + r.height + '" step="0.1" onchange="ForestCalc.batchRows[' + i + '].height=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
+      '<td><input type="number" value="' + (r.count || 1) + '" min="1" step="1" style="width:48px;padding:5px;text-align:center;" onchange="var c=parseInt(this.value)||1;ForestCalc.batchRows[' + i + '].count=c;ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
       '<td>' + (vv!=null?vv.toFixed(4):'—') + '</td><td>' + (sp!=null?sp.toFixed(4):'—') + '</td><td>' + (ns!=null?ns.toFixed(4):'—') + '</td><td>' + (fl!=null?fl.toFixed(4):'—') + '</td><td>' + (wa!=null?wa.toFixed(4):'—') + '</td>' +
       '<td>' +
 (i > 0 ? '<button class="btn btn-outline btn-sm" onclick="ForestCalc.moveBatchRow(' + i + ',-1)" title="上移">↑</button>' : '') +
@@ -386,15 +405,17 @@ ForestCalc.renderBatch = function() {
 };
 
 ForestCalc.calcBatch = function() {
-  var tV=0, tS=0, tN=0, tF=0, tW=0, cnt=0;
+  var tV=0, tS=0, tN=0, tF=0, tW=0, cnt=0, validCnt=0;
   ForestCalc.batchRows.forEach(function(r) {
     if (!r.dbh || r.dbh<=0 || !r.height || r.height<=0) return;
     var s = ForestCalc.SPECIES[r.speciesIdx];
     if (s.a === 0) return; // skip species with no formula
     var v = ForestCalc.calcVolume(s, r.dbh, r.height);
     var y = ForestCalc.calcYield(s, v, r.dbh, r.height);
-    r._vol=v; r._spec=y.spec; r._nonSpec=y.nonSpec; r._fuel=y.fuel; r._waste=y.waste;
-    tV+=v; tS+=y.spec; tN+=y.nonSpec; tF+=y.fuel; tW+=y.waste;
+    var c = r.count || 1;
+    r._vol=v*c; r._spec=y.spec*c; r._nonSpec=y.nonSpec*c; r._fuel=y.fuel*c; r._waste=y.waste*c;
+    tV+=v*c; tS+=y.spec*c; tN+=y.nonSpec*c; tF+=y.fuel*c; tW+=y.waste*c;
+    validCnt+=c;
     cnt++;
   });
   ForestCalc.renderBatch();
@@ -408,7 +429,7 @@ ForestCalc.calcBatch = function() {
   if (areaB > 0) {
     areaRows =
     '<tr class="summary-row" style="background:linear-gradient(180deg,#fdf3e4,#f8e8d0)!important;">' +
-      '<td colspan="4">亩均统计（' + areaB.toFixed(1) + ' 亩）</td>' +
+      '<td colspan="5">亩均统计（' + areaB.toFixed(1) + ' 亩）</td>' +
       '<td>' + (tV/areaB).toFixed(4) + ' m³/亩</td>' +
       '<td colspan="2">' + (totalEconBatch/areaB).toFixed(4) + ' m³/亩 经济材</td>' +
       '<td colspan="3">' + (tS/areaB).toFixed(4) + ' m³/亩 规格材</td>' +
@@ -421,17 +442,17 @@ ForestCalc.calcBatch = function() {
     var haVol = tV, haSpec = tS, haNonSpec = tN, haFuel = tF, haWaste = tW;
     hectareRow =
     '<tr class="summary-row" style="background:rgba(196,165,110,0.12);font-weight:bold;">' +
-      '<td colspan="4">公顷合计（' + densityBatch + ' 株/公顷）</td>' +
+      '<td colspan="5">公顷合计（' + densityBatch + ' 株/公顷）</td>' +
       '<td>' + haVol.toFixed(3) + ' m³</td><td>' + haSpec.toFixed(3) + ' m³</td><td>' + haNonSpec.toFixed(3) + ' m³</td><td>' + haFuel.toFixed(3) + ' m³</td><td>' + haWaste.toFixed(3) + ' m³</td><td></td>' +
     '</tr>';
   }
   sb.innerHTML =
     '<tr class="summary-row">' +
-      '<td colspan="4">采伐合计（' + cnt + ' 株）</td>' +
+      '<td colspan="5">采伐合计（' + validCnt + ' 株，' + cnt + ' 行）</td>' +
       '<td>' + tV.toFixed(4) + ' m³</td><td>' + tS.toFixed(4) + ' m³</td><td>' + tN.toFixed(4) + ' m³</td><td>' + tF.toFixed(4) + ' m³</td><td>' + tW.toFixed(4) + ' m³</td><td></td>' +
     '</tr>' +
     '<tr class="summary-row">' +
-      '<td colspan="4">经济材总计</td>' +
+      '<td colspan="5">经济材总计</td>' +
       '<td colspan="2" style="color:var(--pine);font-size:16px;">' + totalEconBatch.toFixed(4) + ' m³</td>' +
       '<td colspan="2">综合出材率</td>' +
       '<td colspan="2">' + (tV>0?(totalEconBatch/tV*100).toFixed(1):0) + '%</td>' +
@@ -451,7 +472,7 @@ ForestCalc.calcBatch = function() {
     var max = function(arr) { return Math.max.apply(null, arr); };
 
     sb.innerHTML +=
-    '<tr><td colspan="10">' +
+    '<tr><td colspan="11">' +
     '<div style="margin-top:10px;padding:8px;background:rgba(196,165,110,0.06);border-radius:6px;">' +
     '<h5 style="margin:0 0 6px 0;">📊 统计摘要 (' + validRows.length + ' 条有效数据)</h5>' +
     '<table style="width:100%;font-size:12px;">' +
@@ -468,7 +489,7 @@ ForestCalc.calcBatch = function() {
   validRows.forEach(function(r) {
     var sidx = r.speciesIdx;
     if (!groups[sidx]) groups[sidx] = { count: 0, totalVolume: 0, totalSpec: 0, totalNonSpec: 0, totalFuel: 0, totalWaste: 0 };
-    groups[sidx].count++;
+    groups[sidx].count += (r.count || 1);
     groups[sidx].totalVolume += r._vol;
     groups[sidx].totalSpec += r._spec;
     groups[sidx].totalNonSpec += r._nonSpec;
@@ -477,7 +498,7 @@ ForestCalc.calcBatch = function() {
   });
   var groupKeys = Object.keys(groups);
   if (groupKeys.length > 0) {
-    var ghtml = '<tr><td colspan="10">' +
+    var ghtml = '<tr><td colspan="11">' +
     '<div style="margin-top:10px;padding:8px;background:rgba(196,165,110,0.06);border-radius:6px;">' +
     '<h5 style="margin:0 0 6px 0;">按树种分组</h5>' +
     '<table style="width:100%;font-size:12px;">' +
@@ -640,11 +661,11 @@ ForestCalc.exportBatchCSV = function() {
   var validRows = rows.filter(function(r) { return r._vol != null; });
   if (validRows.length === 0) { ForestCalc.showToast('请先计算批量数据', 'warn'); return; }
   
-  var csv = '\uFEFF序号,树种,胸径(cm),树高(m),蓄积量(m³),规格材(m³),非规格材(m³),薪材(m³),废材(m³)\n';
+  var csv = '\uFEFF序号,树种,胸径(cm),树高(m),株数,蓄积量(m³),规格材(m³),非规格材(m³),薪材(m³),废材(m³)\n';
   validRows.forEach(function(r, i) {
     var s = ForestCalc.SPECIES ? ForestCalc.SPECIES[r.speciesIdx] : null;
     var name = s ? s.name : '未知';
-    csv += (i+1) + ',' + name + ',' + r.dbh + ',' + r.height + ',' + r._vol.toFixed(4) + ',' + r._spec.toFixed(4) + ',' + r._nonSpec.toFixed(4) + ',' + r._fuel.toFixed(4) + ',' + r._waste.toFixed(4) + '\n';
+    csv += (i+1) + ',' + name + ',' + r.dbh + ',' + r.height + ',' + (r.count || 1) + ',' + r._vol.toFixed(4) + ',' + r._spec.toFixed(4) + ',' + r._nonSpec.toFixed(4) + ',' + r._fuel.toFixed(4) + ',' + r._waste.toFixed(4) + '\n';
   });
   
   var blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
