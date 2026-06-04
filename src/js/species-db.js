@@ -14,6 +14,7 @@ ForestCalc.SPECIES = [
     source: '本地实际使用材积表 回归(R²=0.992, n=150)', reliability: 'high',
     yieldRates: { spec: 0.6, nonSpec: 0.2, fuel: 0.05, waste: 0.15 }, // economic base 78%
     defaultHRatio: 0.70,
+    yieldDMin: 6, yieldDMax: 50,
     econBasePct: 78,   // DB51/T 1466 153点回归 R²=0.977
     note: '⭐ 本地现用表！从用户提供的150个表值回归。D=20 H=15→0.230m³'
   },
@@ -23,6 +24,7 @@ ForestCalc.SPECIES = [
     source: 'DB51/T 1466-2012 四川省标(已废止)', reliability: 'high',
     yieldRates: { spec: 0.6, nonSpec: 0.2, fuel: 0.05, waste: 0.15 }, // DB51验证:经济材80%
     defaultHRatio: 0.70,
+    yieldDMin: 6, yieldDMax: 50,
     note: 'DB51省标参考。D=20 H=15→0.248m³。与实际表偏差-7%'
   },
   {
@@ -31,6 +33,7 @@ ForestCalc.SPECIES = [
     source: 'DB51/T 1464-2012/LY208-77', reliability: 'high',
     yieldRates: { spec: 0.55, nonSpec: 0.20, fuel: 0.05, waste: 0.20 }, // economic base 73%
     defaultHRatio: 0.80,
+    yieldDMin: 6, yieldDMax: 40,
     econBasePct: 73,   // 南方杉木产区出材率范围70-78%,中等林分取73%
     note: 'DB51采用LY208-77参数。推荐。贵州DB52/T 702有变指数公式'
   },
@@ -40,6 +43,7 @@ ForestCalc.SPECIES = [
     source: 'DB51/T 1467-2012 四川省标(2025废止)', reliability: 'high',
     yieldRates: { spec: 0.55, nonSpec: 0.20, fuel: 0.05, waste: 0.20 }, // economic base 71%
     defaultHRatio: 0.65,
+    yieldDMin: 6, yieldDMax: 36,
     econBasePct: 71,   // 柏木干形中等,尖削度0.45,DB51标准
     note: '✅ 7个查表值验证一致。贵州DB52/T 773有变指数公式。推荐'
   },
@@ -49,6 +53,7 @@ ForestCalc.SPECIES = [
     source: '本地实际使用材积表 回归(R²=0.992, n=80)', reliability: 'high',
     yieldRates: { spec: 0.55, nonSpec: 0.20, fuel: 0.05, waste: 0.20 }, // 柳杉经济材72%(估)
     defaultHRatio: 0.75,
+    yieldDMin: 6, yieldDMax: 50,
     note: '⭐ 本地现用表！从用户提供的80个表值回归。D=20 H=15→0.268m³'
   },
   {
@@ -57,6 +62,7 @@ ForestCalc.SPECIES = [
     source: 'DB51/T 1462-2012 四川省标(现行)', reliability: 'high',
     yieldRates: { spec: 0.52, nonSpec: 0.20, fuel: 0.05, waste: 0.23 }, // 柳杉经济材72%(估)
     defaultHRatio: 0.75,
+    yieldDMin: 6, yieldDMax: 50,
     note: 'DB51省标参考。D=20 H=15→0.233m³。与实际表偏差+15%'
   },
   {
@@ -65,6 +71,7 @@ ForestCalc.SPECIES = [
     source: 'LY208-77 旧标 / DB51/T 1465-2012（已废止）', reliability: 'medium',
     yieldRates: { spec: 0.5, nonSpec: 0.18, fuel: 0.07, waste: 0.25 }, // 云南松经济材70%(估)
     defaultHRatio: 0.68,
+    yieldDMin: 6, yieldDMax: 40,
     note: '⚠ 旧标公式。2025新标DB53/T 1422.1已发布(天然/人工分开建模)，PDF已下载但需OCR提取系数'
   },
   {
@@ -73,6 +80,7 @@ ForestCalc.SPECIES = [
     source: 'DB53/T 1422.1-2025 表A.1回归拟合(R²=0.994)', reliability: 'high',
     yieldRates: { spec: 0.48, nonSpec: 0.17, fuel: 0.07, waste: 0.28 }, // economic base 65%
     defaultHRatio: 0.60,
+    yieldDMin: 6, yieldDMax: 40,
     econBasePct: 65,   // 天然林干形弯曲,树皮厚
     note: '✅ 从78个表值回归拟合。2038株样木(天然1050)。2025-09-07实施'
   },
@@ -82,6 +90,7 @@ ForestCalc.SPECIES = [
     source: 'DB53/T 1422.1-2025 表A.2回归拟合(R²=0.992)', reliability: 'high',
     yieldRates: { spec: 0.55, nonSpec: 0.18, fuel: 0.05, waste: 0.22 }, // 人工云南松经济材72%(估)
     defaultHRatio: 0.72,
+    yieldDMin: 6, yieldDMax: 40,
     note: '✅ 从56个表值回归拟合。2038株样木(人工988)。2025-09-07实施'
   },
   // ---- 西南通用 LY208-77 ----
@@ -91,6 +100,7 @@ ForestCalc.SPECIES = [
     source: 'LY208-77 西南地区', reliability: 'medium',
     yieldRates: { spec: 0.5, nonSpec: 0.18, fuel: 0.07, waste: 0.25 }, // economic base 68%
     defaultHRatio: 0.70,
+    yieldDMin: 6, yieldDMax: 50,
     econBasePct: 68,   // 华山松树干通直度中等,西南经验
     note: '西南通用公式。贵州有DB52/T 768-2012'
   },
@@ -100,6 +110,7 @@ ForestCalc.SPECIES = [
     source: 'LY208-77 栎类专用', reliability: 'medium',
     yieldRates: { spec: 0.4, nonSpec: 0.17, fuel: 0.08, waste: 0.35 }, // 栎类经济材61%(估)
     defaultHRatio: 0.65,
+    yieldDMin: 6, yieldDMax: 60,
     note: 'LY208-77栎类专用系数。贵州DB52/T 826硬阔标准含栎类(已下载)'
   },
   {
@@ -108,6 +119,7 @@ ForestCalc.SPECIES = [
     source: 'LY208-77 四川滇西北阔叶公式', reliability: 'medium',
     yieldRates: { spec: 0.42, nonSpec: 0.15, fuel: 0.08, waste: 0.35 }, // economic base 62%
     defaultHRatio: 0.70,
+    yieldDMin: 6, yieldDMax: 36,
     econBasePct: 62,   // 桤木速生阔叶,尖削度大
     note: '常见速生树种。贵州软阔DB52/T 822含桤木(已下载)'
   },
@@ -117,6 +129,7 @@ ForestCalc.SPECIES = [
     source: 'LY208-77 四川滇西北阔叶公式', reliability: 'medium',
     yieldRates: { spec: 0.50, nonSpec: 0.20, fuel: 0.05, waste: 0.25 }, // 杨树经济材70%(估)
     defaultHRatio: 0.80,
+    yieldDMin: 6, yieldDMax: 50,
     note: '四川杨树通用公式'
   },
   {
@@ -125,6 +138,7 @@ ForestCalc.SPECIES = [
     source: 'LY208-77 四川滇西北阔叶公式', reliability: 'medium',
     yieldRates: { spec: 0.42, nonSpec: 0.15, fuel: 0.08, waste: 0.35 }, // 桤木/软阔经济材63%(估)
     defaultHRatio: 0.70,
+    yieldDMin: 6, yieldDMax: 50,
     note: '含杨柳桤枫香香椿。贵州DB52/T 822软阔标准已下载'
   },
   {
@@ -133,6 +147,7 @@ ForestCalc.SPECIES = [
     source: 'LY208-77 四川滇西北阔叶公式(谨慎使用)', reliability: 'low',
     yieldRates: { spec: 0.45, nonSpec: 0.17, fuel: 0.08, waste: 0.3 }, // economic base 65%
     defaultHRatio: 0.68,
+    yieldDMin: 6, yieldDMax: 60,
     econBasePct: 65,   // 硬阔类,干形中等偏上
     note: '⚠ 硬阔近似值。贵州DB52/T 826硬阔标准含壳斗科(已下载)'
   },
@@ -144,6 +159,7 @@ ForestCalc.SPECIES = [
     source: 'DB52/T 702-2011 贵州省标(现行)', reliability: 'high',
     yieldRates: { spec: 0.52, nonSpec: 0.20, fuel: 0.05, waste: 0.23 }, // 杉木经济材73%(估)
     defaultHRatio: 0.80,
+    yieldDMin: 6, yieldDMax: 40,
     note: '变指数模型: V=a×D^(b1+b2(D+H))×H^(c1+c2(D+H))，精度高于固定指数'
   },
   {
@@ -152,6 +168,7 @@ ForestCalc.SPECIES = [
     source: 'DB52/T 703-2011 贵州省标(现行,已下载)', reliability: 'high',
     yieldRates: { spec: 0.6, nonSpec: 0.2, fuel: 0.05, waste: 0.15 }, // economic base 78%
     defaultHRatio: 0.70,
+    yieldDMin: 6, yieldDMax: 50,
     econBasePct: 78,   // 贵州马尾松
     note: '贵州人工马尾松。已下载标准全文(12页)'
   },
@@ -162,6 +179,7 @@ ForestCalc.SPECIES = [
     source: 'DB52/T 773-2012 贵州省标(现行)', reliability: 'high',
     yieldRates: { spec: 0.55, nonSpec: 0.20, fuel: 0.05, waste: 0.20 }, // economic base 71%
     defaultHRatio: 0.65,
+    yieldDMin: 6, yieldDMax: 36,
     econBasePct: 71,   // 贵州柏木变指数,同柏木组
     note: '变指数模型，指数随D+H线性变化，干形适应性更强'
   },
@@ -172,6 +190,7 @@ ForestCalc.SPECIES = [
     source: 'DB52/T 822-2013 贵州省标(现行,已下载)', reliability: 'high',
     yieldRates: { spec: 0.42, nonSpec: 0.15, fuel: 0.08, waste: 0.35 }, // economic base 62%
     defaultHRatio: 0.70,
+    yieldDMin: 6, yieldDMax: 50,
     econBasePct: 62,   // 贵州软阔变指数,同软阔组
     note: '变指数模型。含枫香桦木香椿杨树朴树。已下载标准全文(12页)'
   },
@@ -182,6 +201,7 @@ ForestCalc.SPECIES = [
     source: 'DB34/T 3345-2019 安徽省马尾松二元立木材积表', reliability: 'high',
     yieldRates: { spec: 0.60, nonSpec: 0.20, fuel: 0.05, waste: 0.15 },
     defaultHRatio: 0.68,
+    yieldDMin: 6, yieldDMax: 50,
     econBasePct: 78,
     note: '安徽2019年新编表。D=20 H=15→0.231m³。与四川DB51参数不同'
   },
@@ -193,6 +213,7 @@ ForestCalc.SPECIES = [
     source: 'DB35/T 1823-2019 福建省主要树种二元立木材积表', reliability: 'high',
     yieldRates: { spec: 0.55, nonSpec: 0.20, fuel: 0.05, waste: 0.20 },
     defaultHRatio: 0.80,
+    yieldDMin: 6, yieldDMax: 40,
     note: '福建2019年新编表。D=20 H=15→0.2326m³。精度高于LY208-77旧标'
   },
   {
@@ -201,6 +222,7 @@ ForestCalc.SPECIES = [
     source: 'DB35/T 1823-2019 福建省主要树种二元立木材积表', reliability: 'high',
     yieldRates: { spec: 0.60, nonSpec: 0.20, fuel: 0.05, waste: 0.15 },
     defaultHRatio: 0.68,
+    yieldDMin: 6, yieldDMax: 50,
     note: '福建2019年新编表。D=20 H=15→0.2277m³。与四川DB51/本地表参数不同'
   },
   {
@@ -209,6 +231,7 @@ ForestCalc.SPECIES = [
     source: 'DB35/T 1823-2019 福建省主要树种二元立木材积表', reliability: 'high',
     yieldRates: { spec: 0.45, nonSpec: 0.17, fuel: 0.08, waste: 0.30 },
     defaultHRatio: 0.70,
+    yieldDMin: 6, yieldDMax: 50,
     note: '福建阔叶树通用公式，涵盖桉树相思等速生树种。D=20 H=15→0.2355m³'
   },
   {
@@ -217,6 +240,7 @@ ForestCalc.SPECIES = [
     source: 'DB35/T 1823-2019 福建省主要树种二元立木材积表', reliability: 'high',
     yieldRates: { spec: 0.50, nonSpec: 0.18, fuel: 0.07, waste: 0.25 },
     defaultHRatio: 0.72,
+    yieldDMin: 6, yieldDMax: 40,
     note: '福建其他针叶通用公式，涵盖火炬松湿地松等。D=20 H=15→0.2175m³'
   }
 ];

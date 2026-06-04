@@ -732,8 +732,18 @@ ForestCalc.showYieldTable = function() {
   var speciesId = ForestCalc.SPECIES[document.getElementById('speciesSelect').value]?.id;
   if (!speciesId) { ForestCalc.showToast('请先选择树种', 'warn'); return; }
 
-  var dMin = parseInt(document.getElementById('dMinYield')?.value) || 6;
-  var dMax = parseInt(document.getElementById('dMaxYield')?.value) || 40;
+  var dMin = parseInt(document.getElementById('dMinYield')?.value);
+  if (!dMin || isNaN(dMin)) {
+    var selSpecies = ForestCalc.SPECIES[document.getElementById('speciesSelect').value];
+    dMin = (selSpecies && selSpecies.yieldDMin) ? selSpecies.yieldDMin : 6;
+  }
+  var dMax = parseInt(document.getElementById('dMaxYield')?.value);
+  if (!dMax || isNaN(dMax)) {
+    var selSpecies = ForestCalc.SPECIES[document.getElementById('speciesSelect').value];
+    dMax = (selSpecies && selSpecies.yieldDMax) ? selSpecies.yieldDMax : 40;
+  }
+  document.getElementById('dMinYield').value = dMin;
+  document.getElementById('dMaxYield').value = dMax;
   var step = parseInt(document.getElementById('stepYield')?.value) || 2;
 
   var hRatio = parseFloat(document.getElementById('hRatioYield')?.value);
@@ -748,7 +758,8 @@ ForestCalc.showYieldTable = function() {
 
   var rows = result.rows;
   var html = '<div style="margin-top:16px;">';
-  html += '<h4>📋 ' + result.species.name + ' 收方表 (D ' + dMin + '~' + dMax + 'cm, 步长 ' + step + 'cm, H≈D×' + hRatio.toFixed(2) + ') <button class="btn btn-sm" style="margin-left:12px;" onclick="ForestCalc.exportYieldCSV()">📥 导出 CSV</button></h4>';
+  html += '<h4>📋 ' + result.species.name + ' 收方表 (D ' + dMin + '~' + dMax + 'cm, 步长 ' + step + 'cm, H/D=' + hRatio.toFixed(2) + ') <button class="btn btn-sm" style="margin-left:12px;" onclick="ForestCalc.exportYieldCSV()">📥 导出 CSV</button></h4>';
+  html += '<div style="font-size:11px;color:var(--wood);margin-bottom:4px;">H/D 比来源: ' + (result.species.defaultHRatio && Math.abs(hRatio - result.species.defaultHRatio) < 0.001 ? '树种默认值 (' + hRatio.toFixed(2) + ')' : '用户自定义 (' + hRatio.toFixed(2) + ')') + ' | 可手动修改 H/D 比后重新生成</div>';
   html += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">';
   html += '<thead><tr style="background:rgba(196,165,110,0.12);">';
   html += '<th>D(cm)</th><th>H(m)</th><th>材积(m³)</th><th>规格材</th><th>非规格材</th><th>薪材</th><th>废材</th><th>经济材率</th>';
