@@ -239,7 +239,6 @@ ForestCalc.getCustomSpecies = function() {
   var name = document.getElementById('cName').value.trim();
   if (!isNaN(ca) && !isNaN(cb) && !isNaN(cc) && ca > 0) {
     return { a: ca, b: cb, c: cc, isDynamic: false, name: name || '自定义', yieldRates: { spec: 0.42, nonSpec: 0.16, fuel: 0.13, waste: 0.29 } };
-    defaultHRatio: 0.72,
   }
   return null;
 };
