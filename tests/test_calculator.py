@@ -196,6 +196,13 @@ class TestCoreFormulas(unittest.TestCase):
         vol = calc_volume(sp, 20, 15)
         self.assertGreater(vol, 0.15)
 
+    def test_anhui_masson_pine(self):
+        """安徽马尾松(DB34/T 3345-2019): D=20 H=15 → ~0.231m³"""
+        sp = self._make_species("马尾松(安徽)", 0.000062599, 1.875389, 0.918393)
+        vol = calc_volume(sp, 20, 15)
+        self.assertGreater(vol, 0.15)
+        self.assertLess(vol, 0.35)
+
     def test_monotonic_height(self):
         """单调性: H 增大时材积应单调递增"""
         sp = self._make_species("马尾松", 0.0000589718432, 1.879095, 0.975023)
@@ -358,6 +365,7 @@ class TestYieldRatesDynamic(unittest.TestCase):
             ("马尾松(福建)", 78, 0.60, 0.20, 0.05),
             ("阔叶树(福建)", 65, 0.45, 0.17, 0.08),
             ("其他针叶(福建)", 70, 0.50, 0.18, 0.07),
+            ("马尾松(安徽)", 78, 0.60, 0.20, 0.05),
         ]
         for name, econBase, spec, nonSpec, fuel in species_list:
             sp = self._make_species(name, econBase, spec, nonSpec, fuel)

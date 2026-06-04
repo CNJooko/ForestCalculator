@@ -549,43 +549,63 @@ tbody input, tbody select {
     font-size: 11pt;
   }
 
-  .navbar, .calc-grid, .btn, .theme-toggle, footer, .result-card, .batch-actions {
+  /* Hide interactive UI elements */
+  .hero, .navbar, .calc-grid, .btn, .btn-row, .theme-toggle,
+  footer, .result-card, .batch-actions, .toolbar, .form-group,
+  .form-row, .area-row, .yield-row, .species-bar, .card-header .icon,
+  #yieldTableOptions, #singleCard, .collapsible-header,
+  .ring-decoration, .logo-icon, .formula-display, .location-tag,
+  #btnBatchCalc, #btnCompare, #btnYieldTable {
     display: none !important;
   }
 
-  .batch-panel, #batchSummary, #batchCard {
+  /* Show yield table and compare panel */
+  #yieldTablePanel, #comparePanel, #batchCard {
     display: block !important;
     visibility: visible !important;
   }
 
-  .batch-panel .panel, #batchCard {
-    border: 1px solid #ccc !important;
+  #batchCard, .card {
+    border: none !important;
     background: #fff !important;
     box-shadow: none !important;
-    padding: 8px !important;
-    margin: 0 !important;
+    padding: 0 !important;
+    margin: 0 0 16px 0 !important;
+    page-break-inside: avoid;
+  }
+
+  .card-header {
+    border-bottom: 1px solid #999 !important;
+    padding-bottom: 6px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .card-header h2 {
+    font-size: 14pt !important;
+    color: #000 !important;
   }
 
   table {
     border-collapse: collapse !important;
     width: 100% !important;
-    font-size: 10pt !important;
+    font-size: 11px !important;
     color: #000 !important;
   }
 
   th {
     background: #eee !important;
     color: #000 !important;
-    border-bottom: 1px solid #999 !important;
+    border-bottom: 2px solid #999 !important;
+    padding: 3px 4px !important;
   }
 
-  td, th {
-    padding: 3px 6px !important;
-    border: 1px solid #ddd !important;
+  td {
+    padding: 2px 4px !important;
+    border-bottom: 1px solid #ddd !important;
   }
 
   @page {
-    size: A4 landscape;
+    size: A4 portrait;
     margin: 10mm;
   }
 }

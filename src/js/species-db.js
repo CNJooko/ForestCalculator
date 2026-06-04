@@ -156,6 +156,16 @@ ForestCalc.SPECIES = [
     econBasePct: 62,   // 贵州软阔变指数,同软阔组
     note: '变指数模型。含枫香桦木香椿杨树朴树。已下载标准全文(12页)'
   },
+  // ---- 安徽 DB34/T 3345-2019 ----
+  {
+    id: 'masson-pine-ah', name: '马尾松(安徽·2019)', latin: 'Pinus massoniana (Anhui)',
+    a: 0.000062599, b: 1.875389, c: 0.918393, isDynamic: false,
+    source: 'DB34/T 3345-2019 安徽省马尾松二元立木材积表', reliability: 'high',
+    yieldRates: { spec: 0.60, nonSpec: 0.20, fuel: 0.05, waste: 0.15 },
+    econBasePct: 78,
+    note: '安徽2019年新编表。D=20 H=15→0.231m³。与四川DB51参数不同'
+  },
+
   // ---- 福建 DB35/T 1823-2019 ----
   {
     id: 'chinese-fir-fj', name: '杉木(福建·2019)', latin: 'Cunninghamia lanceolata (Fujian)',

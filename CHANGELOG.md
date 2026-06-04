@@ -1,5 +1,37 @@
 # Changelog
 
+## [1.4.4] - 2026-06-04
+
+### Fixed
+- CHANGELOG 结构修复：v1.4.3 节中混入的 v1.4.2 改动已分离为独立节
+
+### Added
+- 键盘快捷键：D/H 输入框支持 Enter 键触发计算（D 有值但 H 为空时聚焦 H）
+- 批量表格行复制：每行新增"复制"按钮，点击复制当前行数据并插入下方
+
+## [1.4.3] - 2026-06-04
+
+### Fixed
+- 收方表 CSV 导出无数据：`exportYieldCSV()` 读取 `_yieldTableData` 但 `showYieldTable()` 未赋值，现生成后立即存储
+- 收方表 CSV 导出按钮 onclick 传参冗余：改为无参调用 `ForestCalc.exportYieldCSV()`
+
+### Added
+- 收方表 H/D 比可调：参数面板新增 H/D 比输入框（默认 0.75，范围 0.5~1.2），标题和计算均动态读取
+
+### Changed
+- CI 精简：移除 deploy job（因 `environment: github-pages` 缺失持续失败），站点走分支部署模式
+- 打印样式优化：收方表 `#yieldTablePanel` 和跨省对比 `#comparePanel` 在打印时完整显示，A4 纵向，表格文字 11px，隐藏所有交互元素
+
+## [1.4.2] - 2026-06-03
+
+### Fixed
+- batch 模式 calcYield 未传递 dbh/height：修正 calcBatch 调用，每行按实际径级计算动态出材率
+- showCompare 覆盖 batchSummary：新增独立 comparePanel 容器，防止对比结果覆盖批量计算结果
+
+### Added
+- 收方表 CSV 导出：收方表标题旁新增"导出 CSV"按钮，支持 BOM + UTF-8 中文表头
+- 新树种：安徽马尾松 (DB34/T 3345-2019)，二元立木材积公式参数 a=0.000062599 b=1.875389 c=0.918393
+
 ## [1.4.1] - 2026-06-03
 
 ### Fixed

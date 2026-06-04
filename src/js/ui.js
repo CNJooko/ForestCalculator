@@ -196,6 +196,13 @@ ForestCalc.clearBatch = function() {
   if (confirm('确定清空全部批量数据？')) { ForestCalc.batchRows = []; ForestCalc.renderBatch(); }
 };
 
+ForestCalc.copyBatchRow = function(idx) {
+  var row = ForestCalc.batchRows[idx];
+  var copy = { speciesIdx: row.speciesIdx, dbh: row.dbh, height: row.height };
+  ForestCalc.batchRows.splice(idx + 1, 0, copy);
+  ForestCalc.renderBatch();
+};
+
 ForestCalc.renderBatch = function() {
   var tbody = document.getElementById('batchBody');
   if (ForestCalc.batchRows.length === 0) {
@@ -217,7 +224,7 @@ ForestCalc.renderBatch = function() {
       '<td><input type="number" value="' + r.dbh + '" step="0.1" onchange="ForestCalc.batchRows[' + i + '].dbh=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
       '<td><input type="number" value="' + r.height + '" step="0.1" onchange="ForestCalc.batchRows[' + i + '].height=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
       '<td>' + (vv!=null?vv.toFixed(4):'—') + '</td><td>' + (sp!=null?sp.toFixed(4):'—') + '</td><td>' + (ns!=null?ns.toFixed(4):'—') + '</td><td>' + (fl!=null?fl.toFixed(4):'—') + '</td><td>' + (wa!=null?wa.toFixed(4):'—') + '</td>' +
-      '<td><button class="btn btn-danger btn-sm" onclick="ForestCalc.batchRows.splice(' + i + ',1);ForestCalc.renderBatch();">✕</button></td>' +
+      '<td><button class="btn btn-outline btn-sm" onclick="ForestCalc.copyBatchRow(' + i + ')" title="复制此行">📋</button> <button class="btn btn-danger btn-sm" onclick="ForestCalc.batchRows.splice(' + i + ',1);ForestCalc.renderBatch();">✕</button></td>' +
     '</tr>';
   });
   tbody.innerHTML = h;
@@ -231,7 +238,7 @@ ForestCalc.calcBatch = function() {
     var s = ForestCalc.SPECIES[r.speciesIdx];
     if (s.a === 0) return; // skip species with no formula
     var v = ForestCalc.calcVolume(s, r.dbh, r.height);
-    var y = ForestCalc.calcYield(s, v);
+    var y = ForestCalc.calcYield(s, v, r.dbh, r.height);
     r._vol=v; r._spec=y.spec; r._nonSpec=y.nonSpec; r._fuel=y.fuel; r._waste=y.waste;
     tV+=v; tS+=y.spec; tN+=y.nonSpec; tF+=y.fuel; tW+=y.waste;
     cnt++;
@@ -467,13 +474,33 @@ ForestCalc.exportBatchCSV = function() {
   URL.revokeObjectURL(url);
 };
 
+// ========== 收方表 CSV 导出 ==========
+ForestCalc.exportYieldCSV = function() {
+  var data = ForestCalc._yieldTableData;
+  if (!data || !data.rows || data.rows.length === 0) { alert('请先生成收方表'); return; }
+  
+  var csv = '\uFEFF胸径(cm),树高(m),材积(m³),规格材(m³),非规格材(m³),薪材(m³),废材(m³),经济材率\n';
+  data.rows.forEach(function(r) {
+    csv += r.dbh + ',' + r.height + ',' + r.volume.toFixed(4) + ',' + r.specVol.toFixed(4) + ',' + r.nonSpecVol.toFixed(4) + ',' + r.fuelVol.toFixed(4) + ',' + r.wasteVol.toFixed(4) + ',' + (r.econRate * 100).toFixed(1) + '%\n';
+  });
+  
+  var blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  var spName = data.species ? data.species.name.replace(/[\\/:*?"<>|]/g, '_') : '未知';
+  a.download = '收方表_' + spName + '_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
 // ========== 跨省标准对比 ==========
 ForestCalc.showCompare = function() {
   var d = parseFloat(document.getElementById('dbhInput').value) || 20;
   var h = parseFloat(document.getElementById('heightInput').value) || 15;
 
   var groups = [
-    { title: '马尾松 (4省)', ids: ['masson-pine','masson-pine-db51','pine-gz','masson-pine-fj'] },
+    { title: '马尾松 (5省)', ids: ['masson-pine','masson-pine-db51','pine-gz','masson-pine-ah','masson-pine-fj'] },
     { title: '杉木 (3省)', ids: ['chinese-fir','fir-gz','chinese-fir-fj'] },
     { title: '柏木 (2省)', ids: ['cypress','cypress-gz'] },
     { title: '阔叶树 (3省)', ids: ['soft-broad','soft-gz','broadleaf-fj'] }
@@ -498,7 +525,7 @@ ForestCalc.showCompare = function() {
       html += '<td>' + vol.toFixed(4) + '</td>';
       html += '<td>' + (y.econRate * 100).toFixed(1) + '%</td>';
       html += '<td>' + y.spec.toFixed(4) + '</td>';
-      var src = (s.source || '').replace('DB51/T ', 'DB51/').replace('DB52/T ', 'DB52/').replace('DB35/T ', 'DB35/');
+      var src = (s.source || '').replace('DB51/T ', 'DB51/').replace('DB52/T ', 'DB52/').replace('DB35/T ', 'DB35/').replace('DB34/T ', 'DB34/');
       html += '<td style="font-size:11px;color:var(--wood-dark);">' + src.substring(0, 28) + '</td>';
       html += '</tr>';
     });
@@ -507,7 +534,7 @@ ForestCalc.showCompare = function() {
   });
   html += '<small style="color:var(--wood);">注: 材积差异来自各省标准系数不同，经济材率来自树种级 econBasePct</small></div>';
 
-  var container = document.getElementById('batchSummary');
+  var container = document.getElementById('comparePanel');
   container.innerHTML = html;
   container.style.display = '';
   document.getElementById('batchCard').scrollIntoView({ behavior: 'smooth' });
@@ -527,12 +554,14 @@ ForestCalc.showYieldTable = function() {
   var dMax = parseInt(document.getElementById('dMaxYield')?.value) || 40;
   var step = parseInt(document.getElementById('stepYield')?.value) || 2;
 
-  var result = ForestCalc.generateYieldTable(speciesId, dMin, dMax, step, 0.75);
+  var hRatio = parseFloat(document.getElementById('hRatioYield')?.value) || 0.75;
+  var result = ForestCalc.generateYieldTable(speciesId, dMin, dMax, step, hRatio);
+  ForestCalc._yieldTableData = result;
   if (!result) { alert('生成失败，请检查树种数据'); return; }
 
   var rows = result.rows;
   var html = '<div style="margin-top:16px;">';
-  html += '<h4>📋 ' + result.species.name + ' 收方表 (D ' + dMin + '~' + dMax + 'cm, 步长 ' + step + 'cm, H≈D×0.75)</h4>';
+  html += '<h4>📋 ' + result.species.name + ' 收方表 (D ' + dMin + '~' + dMax + 'cm, 步长 ' + step + 'cm, H≈D×' + hRatio.toFixed(2) + ') <button class="btn btn-sm" style="margin-left:12px;" onclick="ForestCalc.exportYieldCSV()">📥 导出 CSV</button></h4>';
   html += '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;">';
   html += '<thead><tr style="background:rgba(196,165,110,0.12);">';
   html += '<th>D(cm)</th><th>H(m)</th><th>材积(m³)</th><th>规格材</th><th>非规格材</th><th>薪材</th><th>废材</th><th>经济材率</th>';
@@ -569,8 +598,9 @@ ForestCalc.showYieldTable = function() {
 
   html += '</div>';
 
-  var container = document.getElementById('batchSummary');
+  var container = document.getElementById('yieldTablePanel');
   container.innerHTML = html;
+  container.style.display = '';
   document.getElementById('batchCard').style.display = 'block';
   container.scrollIntoView({ behavior: 'smooth' });
 };
