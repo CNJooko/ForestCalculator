@@ -541,6 +541,48 @@ tbody input, tbody select {
   .volume-hero .volume-number { font-size: 36px; }
 }
 
+/* ========== Toast 通知 ========== */
+#toastContainer {
+  position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+  z-index: 9999; display: flex; flex-direction: column; gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  padding: 10px 22px; border-radius: 8px; font-size: 14px; font-family: inherit;
+  color: var(--bark); max-width: 420px; text-align: center;
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  background: rgba(250,246,238,0.92); box-shadow: var(--shadow);
+  border-left: 4px solid var(--wood); opacity: 0; transform: translateY(-12px);
+  transition: opacity 0.3s, transform 0.3s; pointer-events: auto;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast-info  { border-left-color: var(--info); }
+.toast-warn  { border-left-color: var(--amber); background: rgba(255,248,230,0.94); }
+.toast-error { border-left-color: var(--danger); background: rgba(255,240,240,0.94); }
+.toast-success { border-left-color: var(--pine); background: rgba(240,250,240,0.94); }
+
+/* Dark mode toast */
+body.dark .toast { background: rgba(20,20,20,0.92); color: #ddd8d0; }
+body.dark .toast-warn { background: rgba(40,30,10,0.94); }
+body.dark .toast-error { background: rgba(40,15,15,0.94); }
+body.dark .toast-success { background: rgba(15,35,15,0.94); }
+
+/* ========== Confirm 模态框 ========== */
+.confirm-overlay {
+  position: fixed; inset: 0; z-index: 10000;
+  background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+}
+.confirm-dialog {
+  background: var(--cream); border-radius: var(--radius-lg); padding: 24px 28px;
+  min-width: 320px; max-width: 460px; box-shadow: var(--shadow-lg);
+}
+.confirm-body {
+  font-size: 15px; color: var(--bark); margin-bottom: 18px; line-height: 1.5;
+}
+.confirm-actions { display: flex; justify-content: flex-end; gap: 10px; }
+body.dark .confirm-dialog { background: #252525; }
+body.dark .confirm-body { color: #ddd8d0; }
+
 /* ========== Print Styles ========== */
 @media print {
   body {

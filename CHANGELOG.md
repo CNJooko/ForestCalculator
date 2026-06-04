@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.4.6] - 2026-06-04
+
+### Fixed
+- Bug: Toast/Confirm CSS 样式仅在 dist/ 内联而 src/css/style.css 缺失，导致 rebuild 后样式丢失。已将完整 Toast/Confirm CSS 同步回 src/css/style.css（含暗色模式）
+- Bug: 撤销栈记录的是删除后的状态而非删除前状态，导致撤销无效。修复方案：移除 renderBatch 中的自动入栈逻辑，改为在 addRow、addToBatch、clearBatch、importCSV、删除按钮等破坏性操作前显式 push 快照
+- Bug: 收方表参数面板缺少 H/D 比输入框（#hRatioYield），showYieldTable 读取不到该值。已在 yieldTableOptions 中补全
+
+## [1.4.5] - 2026-06-04
+
+### Added
+- Toast 通知系统：替换所有 alert() 为自定义非阻塞 toast（`ForestCalc.showToast`），支持 info/warn/error/success 四种类型，毛玻璃背景 + 彩色边缘 + 3s 自动淡出
+- Confirm 模态框：替换所有 confirm() 为自定义 `ForestCalc.showConfirm`，居中模态遮罩层 + 确定/取消按钮
+- 批量模式 CSV 粘贴导入：工具栏新增"粘贴导入"按钮，支持 textarea 粘贴（2列: 胸径,树高 / 3列: 胸径,树高,株数），追加模式，忽略注释行
+- 树种下拉框搜索过滤：speciesSelect 上方新增文本搜索框，实时过滤下拉选项
+- 批量行删除撤销：维护 `_undoStack`（最多10个快照），工具栏新增"↩ 撤销"按钮，batchRows 长度变化时自动入栈
+- 批量工具栏新增"导出CSV"快捷按钮
+
+### Changed
+- 所有 alert() / confirm() 调用已替换为 Toast / Confirm 系统（共 11 处 alert + 2 处 confirm）
+
 ## [1.4.4] - 2026-06-04
 
 ### Fixed

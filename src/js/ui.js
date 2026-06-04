@@ -6,6 +6,55 @@ var ForestCalc = window.ForestCalc || {};
 // 批量计算数据（全局状态）
 ForestCalc.batchRows = [];
 
+// ========== 撤销栈 ==========
+ForestCalc._undoStack = [];
+ForestCalc._pushUndo = function() {
+  if (ForestCalc._undoStack.length >= 10) ForestCalc._undoStack.shift();
+  ForestCalc._undoStack.push(ForestCalc.batchRows.map(function(r) {
+    return { speciesIdx: r.speciesIdx, dbh: r.dbh, height: r.height, _vol: r._vol, _spec: r._spec, _nonSpec: r._nonSpec, _fuel: r._fuel, _waste: r._waste };
+  }));
+  document.getElementById('btnUndo').disabled = false;
+};
+
+ForestCalc.undoBatch = function() {
+  if (ForestCalc._undoStack.length === 0) return;
+  ForestCalc.batchRows = ForestCalc._undoStack.pop();
+  ForestCalc._lastBatchLen = ForestCalc.batchRows.length;
+  if (ForestCalc._undoStack.length === 0) document.getElementById('btnUndo').disabled = true;
+  ForestCalc.renderBatch();
+};
+
+// ========== Toast 通知系统 ==========
+ForestCalc.showToast = function(message, type) {
+  type = type || 'info';
+  var container = document.getElementById('toastContainer');
+  var toast = document.createElement('div');
+  toast.className = 'toast toast-' + type;
+  toast.textContent = message;
+  container.appendChild(toast);
+  requestAnimationFrame(function() { toast.classList.add('show'); });
+  setTimeout(function() {
+    toast.classList.remove('show');
+    setTimeout(function() { toast.remove(); }, 350);
+  }, 3000);
+};
+
+// ========== Confirm 模态框 ==========
+ForestCalc.showConfirm = function(message, onConfirm) {
+  var overlay = document.getElementById('confirmOverlay');
+  document.getElementById('confirmMessage').textContent = message;
+  overlay.style.display = 'flex';
+  var yesBtn = document.getElementById('confirmYes');
+  var noBtn = document.getElementById('confirmNo');
+  var cleanup = function() {
+    overlay.style.display = 'none';
+    yesBtn.onclick = null;
+    noBtn.onclick = null;
+  };
+  yesBtn.onclick = function() { cleanup(); if (typeof onConfirm === 'function') onConfirm(); };
+  noBtn.onclick = cleanup;
+};
+
 // ========== 初始化 ==========
 ForestCalc.initApp = function() {
   var sel = document.getElementById('speciesSelect');
@@ -22,6 +71,16 @@ ForestCalc.initApp = function() {
   if (localStorage.getItem('fc_theme') === 'dark') {
     document.body.classList.add('dark');
     document.getElementById('themeToggle').textContent = '☀️';
+  }
+  // 树种搜索过滤
+  var speciesSearch = document.getElementById('speciesSearch');
+  if (speciesSearch) {
+    speciesSearch.addEventListener('input', function() {
+      var filter = this.value.toLowerCase();
+      for (var i = 0; i < sel.options.length; i++) {
+        sel.options[i].style.display = sel.options[i].textContent.toLowerCase().indexOf(filter) !== -1 ? '' : 'none';
+      }
+    });
   }
   // Enter 快捷键：D/H 输入框按 Enter 触发计算
   var dbhInput = document.getElementById('dbhInput');
@@ -81,9 +140,9 @@ ForestCalc.calcSingle = function() {
     document.getElementById('singleResult').classList.add('show');
     return;
   }
-  if (dbh > 300) { alert('胸径超出合理范围（>300cm），请核实。'); return; }
-  if (height > 100) { alert('树高超出合理范围（>100m），请核实。'); return; }
-  if (count < 1) { alert('棵数至少为1。'); return; }
+  if (dbh > 300) { ForestCalc.showToast('胸径超出合理范围（>300cm），请核实。', 'warn'); return; }
+  if (height > 100) { ForestCalc.showToast('树高超出合理范围（>100m），请核实。', 'warn'); return; }
+  if (count < 1) { ForestCalc.showToast('棵数至少为1。', 'warn'); return; }
 
   var vol1 = ForestCalc.calcVolume(s, dbh, height);
   var vol = vol1 * count;
@@ -195,7 +254,7 @@ ForestCalc.addToBatch = function() {
   var height = parseFloat(document.getElementById('heightInput').value);
   var count = parseInt(document.getElementById('countInput').value) || 1;
   if (!dbh || dbh <= 0 || !height || height <= 0) {
-    alert('请先输入有效的胸径和树高。');
+    ForestCalc.showToast('请先输入有效的胸径和树高。', 'warn');
     return;
   }
   for (var i = 0; i < count; i++) {
@@ -211,7 +270,11 @@ ForestCalc.addRow = function() {
 };
 
 ForestCalc.clearBatch = function() {
-  if (confirm('确定清空全部批量数据？')) { ForestCalc.batchRows = []; ForestCalc.renderBatch(); }
+  ForestCalc.showConfirm('确定清空全部批量数据？', function() {
+    ForestCalc._pushUndo();
+    ForestCalc.batchRows = [];
+    ForestCalc.renderBatch();
+  });
 };
 
 ForestCalc.copyBatchRow = function(idx) {
@@ -219,6 +282,39 @@ ForestCalc.copyBatchRow = function(idx) {
   var copy = { speciesIdx: row.speciesIdx, dbh: row.dbh, height: row.height };
   ForestCalc.batchRows.splice(idx + 1, 0, copy);
   ForestCalc.renderBatch();
+};
+
+// ========== CSV 粘贴导入 ==========
+ForestCalc.toggleCSVImport = function() {
+  var panel = document.getElementById('csvImportPanel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+};
+
+ForestCalc.importCSV = function() {
+  var text = document.getElementById('csvTextarea').value.trim();
+  if (!text) { ForestCalc.showToast('请先粘贴CSV数据', 'warn'); return; }
+  var lines = text.split('\n');
+  var imported = 0;
+  var speciesIdx = parseInt(document.getElementById('speciesSelect').value) || 0;
+  ForestCalc._pushUndo();
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (!line || line.charAt(0) === '#') continue;
+    var parts = line.split(',');
+    if (parts.length < 2) continue;
+    var dbh = parseFloat(parts[0]);
+    var height = parseFloat(parts[1]);
+    var count = parts.length >= 3 ? parseInt(parts[2]) : 1;
+    if (isNaN(dbh) || isNaN(height) || dbh <= 0 || height <= 0 || count < 1) continue;
+    for (var j = 0; j < count; j++) {
+      ForestCalc.batchRows.push({ speciesIdx: speciesIdx, dbh: dbh, height: height });
+      imported++;
+    }
+  }
+  ForestCalc.renderBatch();
+  ForestCalc.showToast('成功导入 ' + imported + ' 行数据', 'success');
+  document.getElementById('csvTextarea').value = '';
+  document.getElementById('csvImportPanel').style.display = 'none';
 };
 
 ForestCalc.renderBatch = function() {
@@ -262,7 +358,7 @@ ForestCalc.calcBatch = function() {
     cnt++;
   });
   ForestCalc.renderBatch();
-  if (cnt===0) { alert('请至少输入一株有效树木。'); return; }
+  if (cnt===0) { ForestCalc.showToast('请至少输入一株有效树木。', 'warn'); return; }
 
   var sb = document.getElementById('batchSummary');
   sb.style.display = '';
@@ -380,13 +476,13 @@ ForestCalc.saveCustom = function() {
   var a = parseFloat(document.getElementById('cA').value);
   var b = parseFloat(document.getElementById('cB').value);
   var c = parseFloat(document.getElementById('cC').value);
-  if (!name || isNaN(a) || isNaN(b) || isNaN(c)) { alert('请填写树种名称和 a,b,c 三个系数。'); return; }
+  if (!name || isNaN(a) || isNaN(b) || isNaN(c)) { ForestCalc.showToast('请填写树种名称和 a,b,c 三个系数。', 'warn'); return; }
   var saved = ForestCalc.loadSavedCustoms();
   saved.push({ name: name, a: a, b: b, c: c, time: new Date().toLocaleString() });
   if (saved.length > 20) saved.shift();
   ForestCalc.saveCustomToStorage(saved);
   ForestCalc.renderSavedList();
-  alert('已保存: ' + name);
+  ForestCalc.showToast('已保存: ' + name, 'success');
 };
 
 ForestCalc.applySaved = function(idx) {
@@ -459,7 +555,7 @@ ForestCalc.toggleData = function(el) {
 
 // ========== 清空历史 ==========
 ForestCalc.clearHistoryUI = function() {
-  if (confirm('确定清空所有计算历史？')) { ForestCalc.clearHistory(); ForestCalc.renderHistory(); }
+  ForestCalc.showConfirm('确定清空所有计算历史？', function() { ForestCalc.clearHistory(); ForestCalc.renderHistory(); });
 };
 
 // ========== 暗色主题切换 ==========
@@ -474,7 +570,7 @@ ForestCalc.toggleTheme = function() {
 ForestCalc.exportBatchCSV = function() {
   var rows = ForestCalc.batchRows;
   var validRows = rows.filter(function(r) { return r._vol != null; });
-  if (validRows.length === 0) { alert('请先计算批量数据'); return; }
+  if (validRows.length === 0) { ForestCalc.showToast('请先计算批量数据', 'warn'); return; }
   
   var csv = '\uFEFF序号,树种,胸径(cm),树高(m),蓄积量(m³),规格材(m³),非规格材(m³),薪材(m³),废材(m³)\n';
   validRows.forEach(function(r, i) {
@@ -495,7 +591,7 @@ ForestCalc.exportBatchCSV = function() {
 // ========== 收方表 CSV 导出 ==========
 ForestCalc.exportYieldCSV = function() {
   var data = ForestCalc._yieldTableData;
-  if (!data || !data.rows || data.rows.length === 0) { alert('请先生成收方表'); return; }
+  if (!data || !data.rows || data.rows.length === 0) { ForestCalc.showToast('请先生成收方表', 'warn'); return; }
   
   var csv = '\uFEFF胸径(cm),树高(m),材积(m³),规格材(m³),非规格材(m³),薪材(m³),废材(m³),经济材率\n';
   data.rows.forEach(function(r) {
@@ -566,7 +662,7 @@ ForestCalc.showYieldTable = function() {
   }
 
   var speciesId = ForestCalc.SPECIES[document.getElementById('speciesSelect').value]?.id;
-  if (!speciesId) { alert('请先选择树种'); return; }
+  if (!speciesId) { ForestCalc.showToast('请先选择树种', 'warn'); return; }
 
   var dMin = parseInt(document.getElementById('dMinYield')?.value) || 6;
   var dMax = parseInt(document.getElementById('dMaxYield')?.value) || 40;
@@ -575,7 +671,7 @@ ForestCalc.showYieldTable = function() {
   var hRatio = parseFloat(document.getElementById('hRatioYield')?.value) || 0.75;
   var result = ForestCalc.generateYieldTable(speciesId, dMin, dMax, step, hRatio);
   ForestCalc._yieldTableData = result;
-  if (!result) { alert('生成失败，请检查树种数据'); return; }
+  if (!result) { ForestCalc.showToast('生成失败，请检查树种数据', 'warn'); return; }
 
   var rows = result.rows;
   var html = '<div style="margin-top:16px;">';
