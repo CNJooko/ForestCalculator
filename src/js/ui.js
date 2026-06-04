@@ -376,7 +376,7 @@ ForestCalc.renderBatch = function() {
       '<td>' +
 (i > 0 ? '<button class="btn btn-outline btn-sm" onclick="ForestCalc.moveBatchRow(' + i + ',-1)" title="上移">↑</button>' : '') +
 (i < ForestCalc.batchRows.length - 1 ? '<button class="btn btn-outline btn-sm" onclick="ForestCalc.moveBatchRow(' + i + ',1)" title="下移">↓</button>' : '') +
-'<button class="btn btn-outline btn-sm" onclick="ForestCalc.copyBatchRow(' + i + ')" title="复制此行">📋</button> <button class="btn btn-danger btn-sm" onclick="ForestCalc.batchRows.splice(' + i + ',1);ForestCalc.renderBatch();">✕</button></td>' +
+'<button class="btn btn-outline btn-sm" onclick="ForestCalc.copyBatchRow(' + i + ')" title="复制此行">📋</button> <button class="btn btn-danger btn-sm" onclick="ForestCalc._pushUndo();ForestCalc.batchRows.splice(' + i + ',1);ForestCalc.renderBatch();">✕</button></td>' +
     '</tr>';
   });
   tbody.innerHTML = h;
