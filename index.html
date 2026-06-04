@@ -1248,6 +1248,24 @@ ForestCalc.initApp = function() {
     document.body.classList.add('dark');
     document.getElementById('themeToggle').textContent = '☀️';
   }
+  // Enter 快捷键：D/H 输入框按 Enter 触发计算
+  var dbhInput = document.getElementById('dbhInput');
+  var heightInput = document.getElementById('heightInput');
+  if (dbhInput && heightInput) {
+    dbhInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        if (!heightInput.value.trim()) { heightInput.focus(); }
+        else { ForestCalc.calcSingle(); }
+      }
+    });
+    heightInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        ForestCalc.calcSingle();
+      }
+    });
+  }
 };
 
 // ========== 树种切换 ==========
