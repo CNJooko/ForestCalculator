@@ -1351,7 +1351,6 @@ ForestCalc._pushUndo = function() {
 ForestCalc.undoBatch = function() {
   if (ForestCalc._undoStack.length === 0) return;
   ForestCalc.batchRows = ForestCalc._undoStack.pop();
-  ForestCalc._lastBatchLen = ForestCalc.batchRows.length;
   if (ForestCalc._undoStack.length === 0) document.getElementById('btnUndo').disabled = true;
   ForestCalc.renderBatch();
 };
@@ -1691,10 +1690,8 @@ ForestCalc.importCSV = function() {
     var height = parseFloat(parts[1]);
     var count = parts.length >= 3 ? parseInt(parts[2]) : 1;
     if (isNaN(dbh) || isNaN(height) || dbh <= 0 || height <= 0 || count < 1) continue;
-    for (var j = 0; j < count; j++) {
-      ForestCalc.batchRows.push({ speciesIdx: speciesIdx, dbh: dbh, height: height, count: 1 });
-      imported++;
-    }
+    ForestCalc.batchRows.push({ speciesIdx: speciesIdx, dbh: dbh, height: height, count: count });
+    imported++;
   }
   ForestCalc.renderBatch();
   ForestCalc.showToast('成功导入 ' + imported + ' 行数据', 'success');
