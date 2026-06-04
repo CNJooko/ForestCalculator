@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.5.2] - 2026-06-04
+
+### Fixed
+- 补全撤销栈覆盖：addRow、addToBatch、copyBatchRow 操作前新增 `_pushUndo()`
+  - 至此 7 处破坏性操作（新增/删除/清空/导入/复制/移动）全部纳入撤销栈
+
 ## [1.5.1] - 2026-06-04
 
 ### Fixed

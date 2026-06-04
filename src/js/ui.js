@@ -303,12 +303,14 @@ ForestCalc.addToBatch = function() {
     ForestCalc.showToast('请先输入有效的胸径和树高。', 'warn');
     return;
   }
+  ForestCalc._pushUndo();
   ForestCalc.batchRows.push({ speciesIdx: idx, dbh: dbh, height: height, count: count });
   ForestCalc.renderBatch();
   document.getElementById('batchCard').scrollIntoView({ behavior: 'smooth' });
 };
 
 ForestCalc.addRow = function() {
+  ForestCalc._pushUndo();
   ForestCalc.batchRows.push({ speciesIdx: 0, dbh: '', height: '', count: 1 });
   ForestCalc.renderBatch();
 };
