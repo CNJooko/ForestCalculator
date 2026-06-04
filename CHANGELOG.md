@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.5.3] - 2026-06-04
+
+### Added
+- 批量计算支持自定义综合出材率：calcBatch 在 getYieldRates 检测到自定义值后覆盖 calcYield 的动态出材率
+
+### Fixed
+- build.py 版本注入方式：从硬编码 `v1.1.0` 替换改为 `__VERSION__` 令牌替换，消除构建产物版本号滞留
+
+### Removed
+- calculator.js 中死代码 `exportYieldCSV`（被 ui.js 同名函数覆盖，从未执行）
+
 ## [1.5.2] - 2026-06-04
 
 ### Fixed

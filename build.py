@@ -109,7 +109,7 @@ def build() -> Optional[Path]:
     version_file = ROOT / "VERSION"
     if version_file.exists():
         version = version_file.read_text(encoding="utf-8").strip()
-        html = html.replace("v1.1.0", f"v{version}")
+        html = html.replace("v__VERSION__", version)
 
     # 内联 CSS
     html = inline_css(html, css_file)

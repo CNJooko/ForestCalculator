@@ -411,6 +411,14 @@ ForestCalc.calcBatch = function() {
     if (s.a === 0) return; // skip species with no formula
     var v = ForestCalc.calcVolume(s, r.dbh, r.height);
     var y = ForestCalc.calcYield(s, v, r.dbh, r.height);
+    // 若用户设置了自定义综合出材率，则覆盖动态出材率
+    var yr = ForestCalc.getYieldRates(s);
+    if (yr.custom) {
+      y.spec = v * yr.spec;
+      y.nonSpec = v * yr.nonSpec;
+      y.fuel = v * yr.fuel;
+      y.waste = v * yr.waste;
+    }
     var c = r.count || 1;
     r._vol=v*c; r._spec=y.spec*c; r._nonSpec=y.nonSpec*c; r._fuel=y.fuel*c; r._waste=y.waste*c;
     tV+=v*c; tS+=y.spec*c; tN+=y.nonSpec*c; tF+=y.fuel*c; tW+=y.waste*c;

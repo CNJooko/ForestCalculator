@@ -114,28 +114,6 @@ ForestCalc.generateYieldTable = function(speciesId, dMin, dMax, step, hRatio) {
   return { species: sp, rows: rows };
 };
 
-/**
- * 导出收方表为 CSV
- */
-ForestCalc.exportYieldCSV = function(speciesId, dMin, dMax, step, hRatio) {
-  var result = ForestCalc.generateYieldTable(speciesId, dMin, dMax, step, hRatio);
-  if (!result) return null;
-
-  var csv = '\uFEFFD(cm),H(m),材积(m³),规格材(m³),非规格材(m³),薪材(m³),废材(m³),经济材率\n';
-  result.rows.forEach(function(r) {
-    csv += r.dbh + ',' + r.height + ',' + r.volume.toFixed(4) + ',' + r.specVol.toFixed(4) + ',' + r.nonSpecVol.toFixed(4) + ',' + r.fuelVol.toFixed(4) + ',' + r.wasteVol.toFixed(4) + ',' + (r.econRate * 100).toFixed(1) + '%\n';
-  });
-
-  var blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = '收方表_' + result.species.name + '_' + new Date().toISOString().slice(0,10) + '.csv';
-  a.click();
-  URL.revokeObjectURL(url);
-  return true;
-};
-
 // 获取出材率分配（支持用户自定义综合出材率）
 ForestCalc.getYieldRates = function(s) {
   var total = parseFloat(document.getElementById('yTotal').value);
