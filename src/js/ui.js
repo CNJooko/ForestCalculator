@@ -89,6 +89,7 @@ ForestCalc.initApp = function() {
     dbhInput.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
+        if (e.ctrlKey) { ForestCalc.addToBatch(); return; }
         if (!heightInput.value.trim()) { heightInput.focus(); }
         else { ForestCalc.calcSingle(); }
       }
@@ -96,9 +97,19 @@ ForestCalc.initApp = function() {
     heightInput.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') {
         e.preventDefault();
+        if (e.ctrlKey) { ForestCalc.addToBatch(); return; }
         ForestCalc.calcSingle();
       }
     });
+    var countInput = document.getElementById('countInput');
+    if (countInput) {
+      countInput.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'Enter') {
+          e.preventDefault();
+          ForestCalc.addToBatch();
+        }
+      });
+    }
   }
 };
 
@@ -120,6 +131,14 @@ ForestCalc.onSpeciesChange = function() {
     '&nbsp;|&nbsp; ' + s.source +
     '&nbsp;|&nbsp; 出材率: 规格' + (s.yieldRates.spec*100).toFixed(0) + '% 非规格' + (s.yieldRates.nonSpec*100).toFixed(0) + '% 薪材' + (s.yieldRates.fuel*100).toFixed(0) + '% 废材' + (s.yieldRates.waste*100).toFixed(0) + '%' +
     '<br><small>' + s.note + '</small>';
+  // 树种切换时同步更新收方表面板H/D比默认值
+  if (s.defaultHRatio !== undefined) {
+    var ytPanel = document.getElementById('yieldTableOptions');
+    var hRatioInput = document.getElementById('hRatioYield');
+    if (ytPanel && ytPanel.style.display === 'block' && hRatioInput) {
+      hRatioInput.value = s.defaultHRatio;
+    }
+  }
 };
 
 // ========== 单株计算 ==========
@@ -362,6 +381,8 @@ ForestCalc.renderBatch = function() {
   });
   tbody.innerHTML = h;
   document.getElementById('batchSummary').style.display = 'none';
+  var countEl = document.getElementById('batchRowCount');
+  if (countEl) countEl.textContent = '共 ' + ForestCalc.batchRows.length + ' 行';
 };
 
 ForestCalc.calcBatch = function() {
@@ -715,7 +736,12 @@ ForestCalc.showYieldTable = function() {
   var dMax = parseInt(document.getElementById('dMaxYield')?.value) || 40;
   var step = parseInt(document.getElementById('stepYield')?.value) || 2;
 
-  var hRatio = parseFloat(document.getElementById('hRatioYield')?.value) || 0.75;
+  var hRatio = parseFloat(document.getElementById('hRatioYield')?.value);
+  if (!hRatio || isNaN(hRatio)) {
+    var selSpecies = ForestCalc.SPECIES[document.getElementById('speciesSelect').value];
+    hRatio = (selSpecies && selSpecies.defaultHRatio) ? selSpecies.defaultHRatio : 0.75;
+  }
+  document.getElementById('hRatioYield').value = hRatio;
   var result = ForestCalc.generateYieldTable(speciesId, dMin, dMax, step, hRatio);
   ForestCalc._yieldTableData = result;
   if (!result) { ForestCalc.showToast('生成失败，请检查树种数据', 'warn'); return; }

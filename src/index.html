@@ -134,6 +134,7 @@
   <div class="toolbar">
     <button class="btn btn-outline btn-sm" onclick="ForestCalc.addRow()">+ 添加一行</button>
     <button class="btn btn-outline btn-sm" onclick="ForestCalc.toggleCSVImport()">📋 粘贴导入</button>
+    <span id="batchRowCount" style="color:var(--wood);font-size:13px;margin-left:12px;"></span>
     <button class="btn btn-primary btn-sm" id="btnBatchCalc" onclick="ForestCalc.calcBatch()">计算全部</button>
     <button class="btn btn-outline btn-sm" id="btnCompare" style="margin-left:6px;" onclick="ForestCalc.showCompare()">📊 跨省对比</button>
     <button id="btnYieldTable" class="btn btn-outline btn-sm" style="margin-left:6px;" onclick="ForestCalc.showYieldTable()">📋 收方表</button>
@@ -210,7 +211,7 @@
   <strong>已获取标准 (8个)</strong>: DB51/T 1462(柳杉) | DB51/T 1466(马尾松) | DB51/T 2918(森林经营) | DB52/T 703(马尾松黔) | DB52/T 822(软阔黔) | DB52/T 826(硬阔黔) | DB35/T 1823(福建) | DB53/T 1422.1(云南松滇) | DB34/T 3345(马尾松皖)<br>
   <strong>参考标准</strong>: LY208-77(部标) | LY/T 2102-2013(编制规程) | GB/T 4814-2013(原木检尺) | DB51/T 1464/1465/1467(四川已废止)<br>
   支持多省标准 · 自定义树种公式 · 本地存储历史
-<br><small style="color:var(--wood-dark);">ForestCalculator v1.4.7 · 24个树种 · 多省标准交叉验证</small>
+<br><small style="color:var(--wood-dark);">ForestCalculator v1.4.8 · 24个树种 · 多省标准交叉验证</small>
 </footer>
 
 <!-- JS 依赖顺序: species-db → storage → calculator → ui → app -->
