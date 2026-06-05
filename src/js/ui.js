@@ -324,6 +324,7 @@ ForestCalc.clearBatch = function() {
 };
 
 ForestCalc.copyBatchRow = function(idx) {
+  ForestCalc._pushUndo();
   var row = ForestCalc.batchRows[idx];
   var copy = { speciesIdx: row.speciesIdx, dbh: row.dbh, height: row.height, count: row.count || 1 };
   ForestCalc.batchRows.splice(idx + 1, 0, copy);

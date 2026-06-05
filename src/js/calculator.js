@@ -125,7 +125,7 @@ ForestCalc.getYieldRates = function(s) {
       spec: def.spec * scale,
       nonSpec: def.nonSpec * scale,
       fuel: def.fuel,
-      waste: 1 - total - def.fuel,
+      waste: Math.max(0, 1 - total - def.fuel),
       custom: true
     };
   }

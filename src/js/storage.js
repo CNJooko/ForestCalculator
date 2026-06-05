@@ -9,7 +9,7 @@ ForestCalc.loadSavedCustoms = function() {
 };
 
 ForestCalc.saveCustomToStorage = function(data) {
-  localStorage.setItem(ForestCalc.STORAGE_KEY, JSON.stringify(data));
+  try { localStorage.setItem(ForestCalc.STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
 };
 
 // ========== 计算历史存储 ==========
@@ -25,5 +25,5 @@ ForestCalc.addHistory = function(speciesName, dbh, height, count, vol, econ) {
 };
 
 ForestCalc.clearHistory = function() {
-  localStorage.removeItem(ForestCalc.HIST_KEY);
+  try { localStorage.removeItem(ForestCalc.HIST_KEY); } catch(e) {}
 };
