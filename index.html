@@ -1648,6 +1648,21 @@ ForestCalc.moveBatchRow = function(idx, direction) {
   ForestCalc.renderBatch();
 };
 
+// 批量行胸径失焦自动推算树高（与主输入框行为保持一致）
+ForestCalc.autoFillBatchHeight = function(idx) {
+  var r = ForestCalc.batchRows[idx];
+  if (!r) return;
+  var dbh = parseFloat(r.dbh);
+  if (!dbh || dbh <= 0) return;
+  var h = parseFloat(r.height);
+  if (!isNaN(h) && h > 0) return; // 已有树高则不覆盖
+  var s = ForestCalc.SPECIES[r.speciesIdx];
+  var hRatio = (s && s.defaultHRatio) ? s.defaultHRatio : 0.75;
+  r.height = Math.round(dbh * hRatio * 10) / 10;
+  r._vol = null;
+  ForestCalc.renderBatch();
+};
+
 // ========== CSV 粘贴导入 ==========
 ForestCalc.toggleCSVImport = function() {
   var panel = document.getElementById('csvImportPanel');
@@ -1696,8 +1711,8 @@ ForestCalc.renderBatch = function() {
     });
     h += '<tr>' +
       '<td>' + (i+1) + '</td>' +
-      '<td><select onchange="ForestCalc.batchRows[' + i + '].speciesIdx=parseInt(this.value);ForestCalc.batchRows[' + i + ']._vol=null;if(document.getElementById(\'batchSummary\').style.display!==\'none\')ForestCalc.calcBatch();else ForestCalc.renderBatch();">' + speciesOptions + '</select></td>' +
-      '<td><input type="number" value="' + r.dbh + '" step="0.1" onchange="ForestCalc.batchRows[' + i + '].dbh=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
+      '<td><select onchange="ForestCalc._pushUndo();ForestCalc.batchRows[' + i + '].speciesIdx=parseInt(this.value);ForestCalc.batchRows[' + i + ']._vol=null;if(document.getElementById(\'batchSummary\').style.display!==\'none\')ForestCalc.calcBatch();else ForestCalc.renderBatch();">' + speciesOptions + '</select></td>' +
+      '<td><input type="number" value="' + r.dbh + '" step="0.1" onchange="ForestCalc.batchRows[' + i + '].dbh=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();" onblur="ForestCalc.autoFillBatchHeight(' + i + ');"></td>' +
       '<td><input type="number" value="' + r.height + '" step="0.1" onchange="ForestCalc.batchRows[' + i + '].height=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
       '<td><input type="number" value="' + (r.count || 1) + '" min="1" step="1" style="width:48px;padding:5px;text-align:center;" onchange="var c=parseInt(this.value)||1;ForestCalc.batchRows[' + i + '].count=c;ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
       '<td>' + (vv!=null?vv.toFixed(4):'—') + '</td><td>' + (sp!=null?sp.toFixed(4):'—') + '</td><td>' + (ns!=null?ns.toFixed(4):'—') + '</td><td>' + (fl!=null?fl.toFixed(4):'—') + '</td><td>' + (wa!=null?wa.toFixed(4):'—') + '</td>' +
@@ -1715,6 +1730,9 @@ ForestCalc.renderBatch = function() {
 
 ForestCalc.calcBatch = function() {
   var tV=0, tS=0, tN=0, tF=0, tW=0, cnt=0, validCnt=0;
+  // 提前检测自定义出材率，避免循环内重复读取 DOM
+  var yTotalVal = parseFloat(document.getElementById('yTotal').value);
+  var isCustomYield = !isNaN(yTotalVal) && yTotalVal > 0 && yTotalVal <= 1;
   ForestCalc.batchRows.forEach(function(r) {
     if (!r.dbh || r.dbh<=0 || !r.height || r.height<=0) return;
     var s = ForestCalc.SPECIES[r.speciesIdx];
@@ -1722,8 +1740,8 @@ ForestCalc.calcBatch = function() {
     var v = ForestCalc.calcVolume(s, r.dbh, r.height);
     var y = ForestCalc.calcYield(s, v, r.dbh, r.height);
     // 若用户设置了自定义综合出材率，则覆盖动态出材率
-    var yr = ForestCalc.getYieldRates(s);
-    if (yr.custom) {
+    if (isCustomYield) {
+      var yr = ForestCalc.getYieldRates(s);
       y.spec = v * yr.spec;
       y.nonSpec = v * yr.nonSpec;
       y.fuel = v * yr.fuel;
