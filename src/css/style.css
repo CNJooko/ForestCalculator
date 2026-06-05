@@ -582,6 +582,10 @@ body.dark .toast-success { background: rgba(15,35,15,0.94); }
 .confirm-actions { display: flex; justify-content: flex-end; gap: 10px; }
 body.dark .confirm-dialog { background: #252525; }
 body.dark .confirm-body { color: #ddd8d0; }
+body.dark .summary-row td {
+  background: linear-gradient(180deg, #3a3528, #322e20) !important;
+  border-top-color: var(--wood-dark);
+}
 
 /* ========== Print Styles ========== */
 @media print {

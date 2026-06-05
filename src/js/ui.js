@@ -311,7 +311,8 @@ ForestCalc.addToBatch = function() {
 
 ForestCalc.addRow = function() {
   ForestCalc._pushUndo();
-  ForestCalc.batchRows.push({ speciesIdx: 0, dbh: '', height: '', count: 1 });
+  var idx = parseInt(document.getElementById('speciesSelect').value) || 0;
+  ForestCalc.batchRows.push({ speciesIdx: idx, dbh: '', height: '', count: 1 });
   ForestCalc.renderBatch();
 };
 

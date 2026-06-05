@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.6] - 2026-06-05
+
+### Fixed
+- getActiveSpecies null 安全：选择框值越界或自定义物种为空时兜底返回 SPECIES[0]，防止 calcSingle 崩溃
+- 暗色模式批量汇总行背景：`.summary-row td` 硬编码亮色渐变，dark 模式补 `!important` 暗色覆盖
+- addRow 默认树种：从硬编码 speciesIdx=0 改为读取当前选中树种索引
+
 ## [1.5.5] - 2026-06-05
 
 ### Fixed

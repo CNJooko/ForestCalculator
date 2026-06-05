@@ -592,6 +592,10 @@ body.dark .toast-success { background: rgba(15,35,15,0.94); }
 .confirm-actions { display: flex; justify-content: flex-end; gap: 10px; }
 body.dark .confirm-dialog { background: #252525; }
 body.dark .confirm-body { color: #ddd8d0; }
+body.dark .summary-row td {
+  background: linear-gradient(180deg, #3a3528, #322e20) !important;
+  border-top-color: var(--wood-dark);
+}
 
 /* ========== Print Styles ========== */
 @media print {
@@ -866,7 +870,7 @@ body.dark .confirm-body { color: #ddd8d0; }
   <strong>已获取标准 (8个)</strong>: DB51/T 1462(柳杉) | DB51/T 1466(马尾松) | DB51/T 2918(森林经营) | DB52/T 703(马尾松黔) | DB52/T 822(软阔黔) | DB52/T 826(硬阔黔) | DB35/T 1823(福建) | DB53/T 1422.1(云南松滇) | DB34/T 3345(马尾松皖)<br>
   <strong>参考标准</strong>: LY208-77(部标) | LY/T 2102-2013(编制规程) | GB/T 4814-2013(原木检尺) | DB51/T 1464/1465/1467(四川已废止)<br>
   支持多省标准 · 自定义树种公式 · 本地存储历史
-<br><small style="color:var(--wood-dark);">ForestCalculator 1.5.5 · 24个树种 · 多省标准交叉验证</small>
+<br><small style="color:var(--wood-dark);">ForestCalculator 1.5.6 · 24个树种 · 多省标准交叉验证</small>
 </footer>
 
 <!-- JS 依赖顺序: species-db → storage → calculator → ui → app -->
@@ -1126,7 +1130,10 @@ ForestCalc.HIST_KEY = 'fc_history';
 // ========== 工具函数 ==========
 ForestCalc.getActiveSpecies = function() {
   var cs = ForestCalc.getCustomSpecies();
-  return cs || ForestCalc.SPECIES[document.getElementById('speciesSelect').value];
+  if (cs) return cs;
+  var sel = document.getElementById('speciesSelect');
+  var idx = parseInt(sel.value);
+  return (idx >= 0 && idx < ForestCalc.SPECIES.length) ? ForestCalc.SPECIES[idx] : ForestCalc.SPECIES[0];
 };
 
 ForestCalc.getCustomSpecies = function() {
@@ -1621,7 +1628,8 @@ ForestCalc.addToBatch = function() {
 
 ForestCalc.addRow = function() {
   ForestCalc._pushUndo();
-  ForestCalc.batchRows.push({ speciesIdx: 0, dbh: '', height: '', count: 1 });
+  var idx = parseInt(document.getElementById('speciesSelect').value) || 0;
+  ForestCalc.batchRows.push({ speciesIdx: idx, dbh: '', height: '', count: 1 });
   ForestCalc.renderBatch();
 };
 

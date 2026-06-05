@@ -253,7 +253,10 @@ ForestCalc.HIST_KEY = 'fc_history';
 // ========== 工具函数 ==========
 ForestCalc.getActiveSpecies = function() {
   var cs = ForestCalc.getCustomSpecies();
-  return cs || ForestCalc.SPECIES[document.getElementById('speciesSelect').value];
+  if (cs) return cs;
+  var sel = document.getElementById('speciesSelect');
+  var idx = parseInt(sel.value);
+  return (idx >= 0 && idx < ForestCalc.SPECIES.length) ? ForestCalc.SPECIES[idx] : ForestCalc.SPECIES[0];
 };
 
 ForestCalc.getCustomSpecies = function() {
