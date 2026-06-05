@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.5.5] - 2026-06-05
+
+### Fixed
+- copyBatchRow 补 `_pushUndo()`：复制行操作缺失撤销快照，与 v1.5.2 承诺的 7 处全覆盖矛盾
+- getYieldRates 废材率下限：自定义出材率接近 1 时 `waste` 可为负值，现 clamp 至 0
+- storage.js 三个 localStorage 操作补 try/catch：saveCustomToStorage、addHistory、clearHistory 存储满时静默降级
+
+## [1.5.4] - 2026-06-04
+
+### Fixed
+- calcBatch 自定义出材率性能：`isCustomYield` 预检测提至循环外，避免逐行重复读取 DOM
+- 批量行内联树种下拉缺失 `_pushUndo()`：onchange 事件前显式推快照
+- 批量行胸径失焦不自动填高：新增 `autoFillBatchHeight(idx)` 函数，DBH 输入框绑定 onblur
+
 ## [1.5.3] - 2026-06-04
 
 ### Added
