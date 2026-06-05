@@ -4,7 +4,7 @@
 
 ## 功能
 
-- 23 个预置树种 + 自定义公式
+- 24 个预置树种 + 自定义公式
 - 动态出材率（DB51 实测验证，马尾松 R²=0.977）
 - 批量汇总 + 亩均统计 + 计算历史记录
 - 支持多省标准（四川/贵州/福建/云南/安徽）
@@ -18,7 +18,7 @@ ForestCalculator/
 │   ├── index.html              # HTML 结构
 │   ├── css/style.css           # 样式表
 │   └── js/
-│       ├── species-db.js       # 树种数据库（19个树种参数）
+│       ├── species-db.js       # 树种数据库（24个树种参数）
 │       ├── storage.js          # localStorage 持久化
 │       ├── calculator.js       # 核心计算公式
 │       ├── ui.js               # UI 渲染与交互
@@ -31,7 +31,7 @@ ForestCalculator/
 │   └── exports/                   # 导出产物
 │
 ├── tests/                      # 单元测试
-│   └── test_calculator.py      # 25 个测试用例（unittest）
+│   └── test_calculator.py      # 29 个测试用例（unittest）
 │
 ├── launcher.py                 # 一键启动本地服务器
 ├── build.py                    # 构建脚本（打包为单文件 HTML）

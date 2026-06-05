@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.5.7 (2026-06-05) — 文档同步
+
+- 🔧 README.md 树种数量修正 23→24（与 species-db.js 一致）
+- 🔧 complete_report.md / fujian_formulas.md 更新：移除已完成的"建议加入"标记
+- 🔧 formula_reference.md 补充安徽马尾松参数
+- 🔧 test_calculator.py 方法名修正 test_all_23 → test_all_24
+- 🗑️ 清理孤立旧文件（根目录旧版 HTML、空 test_output.txt）
+
 ## [1.5.6] - 2026-06-05
 
 ### Fixed

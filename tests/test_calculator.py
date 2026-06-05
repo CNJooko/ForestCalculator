@@ -339,8 +339,8 @@ class TestYieldRatesDynamic(unittest.TestCase):
         econ20 = (y20["spec"]+y20["nonSpec"]) / calc_volume(sp,20,15)
         self.assertLess(econ10, econ20, "小径级应有更低经济材率")
 
-    def test_all_23_econBase_species(self):
-        """23个树种全量验证: D=20,H=15 和 D=30,H=20"""
+    def test_all_24_econBase_species(self):
+        """24个树种全量验证: D=20,H=15 和 D=30,H=20"""
         species_list = [
             ("马尾松(本地表)", 78, 0.60, 0.20, 0.05),
             ("马尾松(DB51)", 78, 0.60, 0.20, 0.05),
