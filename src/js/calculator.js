@@ -114,20 +114,35 @@ ForestCalc.generateYieldTable = function(speciesId, dMin, dMax, step, hRatio) {
   return { species: sp, rows: rows };
 };
 
-// 获取出材率分配（支持用户自定义综合出材率）
-ForestCalc.getYieldRates = function(s) {
-  var total = parseFloat(document.getElementById('yTotal').value);
-  if (!isNaN(total) && total > 0 && total <= 1) {
+/**
+ * 计算出材率分配（纯函数，不依赖 DOM）
+ * @param {object} s - 树种对象
+ * @param {number|null} customTotal - 用户自定义综合出材率（0~1），null 表示使用树种默认值
+ * @returns {{ spec, nonSpec, fuel, waste, custom }}
+ */
+ForestCalc.calcYieldRates = function(s, customTotal) {
+  if (customTotal !== null && customTotal > 0 && customTotal <= 1) {
     var def = s.yieldRates;
     var econSum = def.spec + def.nonSpec;
-    var scale = econSum > 0 ? total / econSum : 1;
+    var scale = econSum > 0 ? customTotal / econSum : 1;
     return {
       spec: def.spec * scale,
       nonSpec: def.nonSpec * scale,
       fuel: def.fuel,
-      waste: Math.max(0, 1 - total - def.fuel),
+      waste: Math.max(0, 1 - customTotal - def.fuel),
       custom: true
     };
   }
   return { spec: s.yieldRates.spec, nonSpec: s.yieldRates.nonSpec, fuel: s.yieldRates.fuel, waste: s.yieldRates.waste, custom: false };
+};
+
+// 获取出材率分配（支持用户自定义综合出材率）— 兼容旧接口，内部读取 DOM
+ForestCalc.getYieldRates = function(s) {
+  var yTotalEl = document.getElementById('yTotal');
+  var customTotal = null;
+  if (yTotalEl) {
+    var val = parseFloat(yTotalEl.value);
+    if (!isNaN(val) && val > 0 && val <= 1) customTotal = val;
+  }
+  return ForestCalc.calcYieldRates(s, customTotal);
 };

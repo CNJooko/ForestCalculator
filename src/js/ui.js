@@ -455,12 +455,18 @@ ForestCalc.calcBatch = function() {
   var areaRows = '';
   if (areaB > 0) {
     areaRows =
-    '<tr class="summary-row" style="background:linear-gradient(180deg,#fdf3e4,#f8e8d0)!important;">' +
-      '<td colspan="5">亩均统计（' + areaB.toFixed(1) + ' 亩）</td>' +
-      '<td>' + (tV/areaB).toFixed(4) + ' m³/亩</td>' +
-      '<td colspan="2">' + (totalEconBatch/areaB).toFixed(4) + ' m³/亩 经济材</td>' +
-      '<td colspan="3">' + (tS/areaB).toFixed(4) + ' m³/亩 规格材</td>' +
-    '</tr>';
+    '<tr><td colspan="11">' +
+    '<div class="area-hero" style="margin-top:10px;">' +
+      '<div class="area-title">亩均统计（' + areaB.toFixed(1) + ' 亩）</div>' +
+      '<div class="area-grid">' +
+        '<div class="area-stat"><span class="big">' + (tV/areaB).toFixed(4) + '</span> m³/亩 蓄积</div>' +
+        '<div class="area-stat"><span class="big">' + (tS/areaB).toFixed(4) + '</span> m³/亩 规格材</div>' +
+        '<div class="area-stat"><span class="big">' + (tN/areaB).toFixed(4) + '</span> m³/亩 非规格材</div>' +
+        '<div class="area-stat"><span class="big">' + (tF/areaB).toFixed(4) + '</span> m³/亩 薪材</div>' +
+        '<div class="area-stat"><span class="big">' + (tW/areaB).toFixed(4) + '</span> m³/亩 废材</div>' +
+      '</div>' +
+    '</div>' +
+    '</td></tr>';
   }
   // 公顷模式合计行
   var densityBatch = parseInt(document.getElementById('density').value) || 0;

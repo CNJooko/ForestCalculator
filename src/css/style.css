@@ -63,6 +63,21 @@ body.dark .btn-danger {
   background: #2a2a2a;
 }
 
+body.dark .yield-item { background: #1e1e1e; }
+body.dark tbody td { background: #1e1e1e; }
+body.dark tbody tr:hover td { background: #2a2a2a; }
+body.dark .callout-warn { background: #2a2518; }
+body.dark .callout-info { background: #18222a; }
+body.dark .badge-high { background: #1a3a1f; color: #4a9a5a; }
+body.dark .badge-medium { background: #3a2e10; color: #d4a02c; }
+body.dark .badge-low { background: #3a1518; color: #e0554b; }
+body.dark .volume-hero { background: linear-gradient(135deg, rgba(80,140,100,0.12), rgba(124,179,66,0.06)); }
+body.dark .area-hero { background: linear-gradient(135deg, rgba(220,150,80,0.12), rgba(230,168,23,0.06)); }
+body.dark thead th { background: linear-gradient(180deg, var(--bark), #1a1a1a); }
+body.dark .species-bar { color: #b0a090; }
+body.dark .yield-item .yield-label { color: #b0a090; }
+body.dark .footer { color: #b0a090; }
+
 /* Theme toggle button */
 .theme-toggle {
   position: fixed;

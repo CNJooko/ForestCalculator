@@ -73,6 +73,21 @@ body.dark .btn-danger {
   background: #2a2a2a;
 }
 
+body.dark .yield-item { background: #1e1e1e; }
+body.dark tbody td { background: #1e1e1e; }
+body.dark tbody tr:hover td { background: #2a2a2a; }
+body.dark .callout-warn { background: #2a2518; }
+body.dark .callout-info { background: #18222a; }
+body.dark .badge-high { background: #1a3a1f; color: #4a9a5a; }
+body.dark .badge-medium { background: #3a2e10; color: #d4a02c; }
+body.dark .badge-low { background: #3a1518; color: #e0554b; }
+body.dark .volume-hero { background: linear-gradient(135deg, rgba(80,140,100,0.12), rgba(124,179,66,0.06)); }
+body.dark .area-hero { background: linear-gradient(135deg, rgba(220,150,80,0.12), rgba(230,168,23,0.06)); }
+body.dark thead th { background: linear-gradient(180deg, var(--bark), #1a1a1a); }
+body.dark .species-bar { color: #b0a090; }
+body.dark .yield-item .yield-label { color: #b0a090; }
+body.dark .footer { color: #b0a090; }
+
 /* Theme toggle button */
 .theme-toggle {
   position: fixed;
@@ -870,7 +885,7 @@ body.dark .summary-row td {
   <strong>已获取标准 (8个)</strong>: DB51/T 1462(柳杉) | DB51/T 1466(马尾松) | DB51/T 2918(森林经营) | DB52/T 703(马尾松黔) | DB52/T 822(软阔黔) | DB52/T 826(硬阔黔) | DB35/T 1823(福建) | DB53/T 1422.1(云南松滇) | DB34/T 3345(马尾松皖)<br>
   <strong>参考标准</strong>: LY208-77(部标) | LY/T 2102-2013(编制规程) | GB/T 4814-2013(原木检尺) | DB51/T 1464/1465/1467(四川已废止)<br>
   支持多省标准 · 自定义树种公式 · 本地存储历史
-<br><small style="color:var(--wood-dark);">ForestCalculator 1.5.8 · 24个树种 · 多省标准交叉验证</small>
+<br><small style="color:var(--wood-dark);">ForestCalculator 1.5.9 · 24个树种 · 多省标准交叉验证</small>
 </footer>
 
 <!-- JS 依赖顺序: species-db → storage → calculator → ui → app -->
@@ -1304,22 +1319,37 @@ ForestCalc.generateYieldTable = function(speciesId, dMin, dMax, step, hRatio) {
   return { species: sp, rows: rows };
 };
 
-// 获取出材率分配（支持用户自定义综合出材率）
-ForestCalc.getYieldRates = function(s) {
-  var total = parseFloat(document.getElementById('yTotal').value);
-  if (!isNaN(total) && total > 0 && total <= 1) {
+/**
+ * 计算出材率分配（纯函数，不依赖 DOM）
+ * @param {object} s - 树种对象
+ * @param {number|null} customTotal - 用户自定义综合出材率（0~1），null 表示使用树种默认值
+ * @returns {{ spec, nonSpec, fuel, waste, custom }}
+ */
+ForestCalc.calcYieldRates = function(s, customTotal) {
+  if (customTotal !== null && customTotal > 0 && customTotal <= 1) {
     var def = s.yieldRates;
     var econSum = def.spec + def.nonSpec;
-    var scale = econSum > 0 ? total / econSum : 1;
+    var scale = econSum > 0 ? customTotal / econSum : 1;
     return {
       spec: def.spec * scale,
       nonSpec: def.nonSpec * scale,
       fuel: def.fuel,
-      waste: Math.max(0, 1 - total - def.fuel),
+      waste: Math.max(0, 1 - customTotal - def.fuel),
       custom: true
     };
   }
   return { spec: s.yieldRates.spec, nonSpec: s.yieldRates.nonSpec, fuel: s.yieldRates.fuel, waste: s.yieldRates.waste, custom: false };
+};
+
+// 获取出材率分配（支持用户自定义综合出材率）— 兼容旧接口，内部读取 DOM
+ForestCalc.getYieldRates = function(s) {
+  var yTotalEl = document.getElementById('yTotal');
+  var customTotal = null;
+  if (yTotalEl) {
+    var val = parseFloat(yTotalEl.value);
+    if (!isNaN(val) && val > 0 && val <= 1) customTotal = val;
+  }
+  return ForestCalc.calcYieldRates(s, customTotal);
 };
 </script>
 <script>
@@ -1780,12 +1810,18 @@ ForestCalc.calcBatch = function() {
   var areaRows = '';
   if (areaB > 0) {
     areaRows =
-    '<tr class="summary-row" style="background:linear-gradient(180deg,#fdf3e4,#f8e8d0)!important;">' +
-      '<td colspan="5">亩均统计（' + areaB.toFixed(1) + ' 亩）</td>' +
-      '<td>' + (tV/areaB).toFixed(4) + ' m³/亩</td>' +
-      '<td colspan="2">' + (totalEconBatch/areaB).toFixed(4) + ' m³/亩 经济材</td>' +
-      '<td colspan="3">' + (tS/areaB).toFixed(4) + ' m³/亩 规格材</td>' +
-    '</tr>';
+    '<tr><td colspan="11">' +
+    '<div class="area-hero" style="margin-top:10px;">' +
+      '<div class="area-title">亩均统计（' + areaB.toFixed(1) + ' 亩）</div>' +
+      '<div class="area-grid">' +
+        '<div class="area-stat"><span class="big">' + (tV/areaB).toFixed(4) + '</span> m³/亩 蓄积</div>' +
+        '<div class="area-stat"><span class="big">' + (tS/areaB).toFixed(4) + '</span> m³/亩 规格材</div>' +
+        '<div class="area-stat"><span class="big">' + (tN/areaB).toFixed(4) + '</span> m³/亩 非规格材</div>' +
+        '<div class="area-stat"><span class="big">' + (tF/areaB).toFixed(4) + '</span> m³/亩 薪材</div>' +
+        '<div class="area-stat"><span class="big">' + (tW/areaB).toFixed(4) + '</span> m³/亩 废材</div>' +
+      '</div>' +
+    '</div>' +
+    '</td></tr>';
   }
   // 公顷模式合计行
   var densityBatch = parseInt(document.getElementById('density').value) || 0;

@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.5.9 (2026-06-06) — UI体验优化
+
+- 暗色模式覆盖 12 个硬编码亮色元素（yield-item / tbody / callout / badge / volume-hero / area-hero / thead / species-bar / yield-label / footer）
+- getYieldRates() DOM 解耦：拆分为纯函数 calcYieldRates() + 兼容包装层
+- 批量汇总补充完整亩均统计（规格材/非规格材/薪材/废材逐项展示）
+
 ## v1.5.8 (2026-06-05)
 
 - 为12个缺失 econBasePct 的树种补充基准经济材率（栎类/软阔/云南松/杨树/福建树种等）
