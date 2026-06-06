@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.6.0 (2026-06-06) — 健壮性与交互优化
+
+- 撤销栈覆盖行内 D/H/株数编辑（撤销后不会丢失最近修改）
+- Toast 添加 × 手动关闭按钮
+- Confirm 模态框支持 Enter/Esc 键盘操作
+- calcVolume 入参边界校验（NaN/Infinity/负数安全返回 0）
+- CSV 导入上限 500 行，超出截断并提示
+- 收方表公顷/亩合计标注"理论最大值"
+
 ## v1.5.9 (2026-06-06) — UI体验优化
 
 - 暗色模式覆盖 12 个硬编码亮色元素（yield-item / tbody / callout / badge / volume-hero / area-hero / thead / species-bar / yield-label / footer）

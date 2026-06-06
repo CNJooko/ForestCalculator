@@ -29,7 +29,17 @@ ForestCalc.showToast = function(message, type) {
   var container = document.getElementById('toastContainer');
   var toast = document.createElement('div');
   toast.className = 'toast toast-' + type;
-  toast.textContent = message;
+  var msgSpan = document.createElement('span');
+  msgSpan.textContent = message;
+  toast.appendChild(msgSpan);
+  var closeBtn = document.createElement('button');
+  closeBtn.className = 'toast-close';
+  closeBtn.textContent = '\u00D7';
+  closeBtn.onclick = function() {
+    toast.classList.remove('show');
+    setTimeout(function() { toast.remove(); }, 350);
+  };
+  toast.appendChild(closeBtn);
   container.appendChild(toast);
   requestAnimationFrame(function() { toast.classList.add('show'); });
   setTimeout(function() {
@@ -45,13 +55,20 @@ ForestCalc.showConfirm = function(message, onConfirm) {
   overlay.style.display = 'flex';
   var yesBtn = document.getElementById('confirmYes');
   var noBtn = document.getElementById('confirmNo');
+  var keyHandler = function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); cleanup(); if (typeof onConfirm === 'function') onConfirm(); }
+    else if (e.key === 'Escape') { e.preventDefault(); cleanup(); }
+  };
   var cleanup = function() {
     overlay.style.display = 'none';
     yesBtn.onclick = null;
     noBtn.onclick = null;
+    document.removeEventListener('keydown', keyHandler);
   };
   yesBtn.onclick = function() { cleanup(); if (typeof onConfirm === 'function') onConfirm(); };
   noBtn.onclick = cleanup;
+  yesBtn.focus();
+  document.addEventListener('keydown', keyHandler);
 };
 
 // ========== 初始化 ==========
@@ -366,6 +383,8 @@ ForestCalc.importCSV = function() {
   if (!text) { ForestCalc.showToast('请先粘贴CSV数据', 'warn'); return; }
   var lines = text.split('\n');
   var imported = 0;
+  var maxRows = 500;
+  var truncated = false;
   var speciesIdx = parseInt(document.getElementById('speciesSelect').value) || 0;
   ForestCalc._pushUndo();
   for (var i = 0; i < lines.length; i++) {
@@ -377,11 +396,16 @@ ForestCalc.importCSV = function() {
     var height = parseFloat(parts[1]);
     var count = parts.length >= 3 ? parseInt(parts[2]) : 1;
     if (isNaN(dbh) || isNaN(height) || dbh <= 0 || height <= 0 || count < 1) continue;
+    if (imported >= maxRows) { truncated = true; break; }
     ForestCalc.batchRows.push({ speciesIdx: speciesIdx, dbh: dbh, height: height, count: count });
     imported++;
   }
   ForestCalc.renderBatch();
-  ForestCalc.showToast('成功导入 ' + imported + ' 行数据', 'success');
+  if (truncated) {
+    ForestCalc.showToast('已导入前 ' + maxRows + ' 行，超出部分已忽略', 'warn');
+  } else {
+    ForestCalc.showToast('成功导入 ' + imported + ' 行数据', 'success');
+  }
   document.getElementById('csvTextarea').value = '';
   document.getElementById('csvImportPanel').style.display = 'none';
 };
@@ -404,9 +428,9 @@ ForestCalc.renderBatch = function() {
     h += '<tr>' +
       '<td>' + (i+1) + '</td>' +
       '<td><select onchange="ForestCalc._pushUndo();ForestCalc.batchRows[' + i + '].speciesIdx=parseInt(this.value);ForestCalc.batchRows[' + i + ']._vol=null;if(document.getElementById(\'batchSummary\').style.display!==\'none\')ForestCalc.calcBatch();else ForestCalc.renderBatch();">' + speciesOptions + '</select></td>' +
-      '<td><input type="number" value="' + r.dbh + '" step="0.1" onchange="ForestCalc.batchRows[' + i + '].dbh=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();" onblur="ForestCalc.autoFillBatchHeight(' + i + ');"></td>' +
-      '<td><input type="number" value="' + r.height + '" step="0.1" onchange="ForestCalc.batchRows[' + i + '].height=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
-      '<td><input type="number" value="' + (r.count || 1) + '" min="1" step="1" style="width:48px;padding:5px;text-align:center;" onchange="var c=parseInt(this.value)||1;ForestCalc.batchRows[' + i + '].count=c;ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
+      '<td><input type="number" value="' + r.dbh + '" step="0.1" onchange="ForestCalc._pushUndo();ForestCalc.batchRows[' + i + '].dbh=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();" onblur="ForestCalc.autoFillBatchHeight(' + i + ');"></td>' +
+      '<td><input type="number" value="' + r.height + '" step="0.1" onchange="ForestCalc._pushUndo();ForestCalc.batchRows[' + i + '].height=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
+      '<td><input type="number" value="' + (r.count || 1) + '" min="1" step="1" style="width:48px;padding:5px;text-align:center;" onchange="ForestCalc._pushUndo();var c=parseInt(this.value)||1;ForestCalc.batchRows[' + i + '].count=c;ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
       '<td>' + (vv!=null?vv.toFixed(4):'—') + '</td><td>' + (sp!=null?sp.toFixed(4):'—') + '</td><td>' + (ns!=null?ns.toFixed(4):'—') + '</td><td>' + (fl!=null?fl.toFixed(4):'—') + '</td><td>' + (wa!=null?wa.toFixed(4):'—') + '</td>' +
       '<td>' +
 (i > 0 ? '<button class="btn btn-outline btn-sm" onclick="ForestCalc.moveBatchRow(' + i + ',-1)" title="上移">↑</button>' : '') +
@@ -856,6 +880,7 @@ ForestCalc.showYieldTable = function() {
     }
     html += '</div>';
   }
+  html += '<p style="font-size:10px;color:#999;margin-top:4px;">\u203B 以上为理论最大值，实际林分中各径级分布不均</p>';
 
   html += '</div>';
 

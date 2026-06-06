@@ -6,6 +6,7 @@ var ForestCalc = window.ForestCalc || {};
 // 二元立木材积公式: V = a × D^b × H^c
 // 变指数模型: V = a × D^(b1+b2(D+H)) × H^(c1+c2(D+H))
 ForestCalc.calcVolume = function(s, dbh, height) {
+  if (!isFinite(dbh) || !isFinite(height) || dbh <= 0 || height <= 0) return 0;
   if (s.a === 0) return null;
   if (s.isDynamic && s.b1 !== undefined) {
     var dh = dbh + height;
