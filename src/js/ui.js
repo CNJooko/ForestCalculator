@@ -466,7 +466,16 @@ ForestCalc.calcBatch = function() {
   var densityBatch = parseInt(document.getElementById('density').value) || 0;
   var hectareRow = '';
   if (densityBatch > 0 && cnt > 0) {
-    var haVol = tV, haSpec = tS, haNonSpec = tN, haFuel = tF, haWaste = tW;
+    var avgVol = validCnt > 0 ? tV / validCnt : 0;
+    var avgSpec = validCnt > 0 ? tS / validCnt : 0;
+    var avgNonSpec = validCnt > 0 ? tN / validCnt : 0;
+    var avgFuel = validCnt > 0 ? tF / validCnt : 0;
+    var avgWaste = validCnt > 0 ? tW / validCnt : 0;
+    var haVol = avgVol * densityBatch;
+    var haSpec = avgSpec * densityBatch;
+    var haNonSpec = avgNonSpec * densityBatch;
+    var haFuel = avgFuel * densityBatch;
+    var haWaste = avgWaste * densityBatch;
     hectareRow =
     '<tr class="summary-row" style="background:rgba(196,165,110,0.12);font-weight:bold;">' +
       '<td colspan="5">公顷合计（' + densityBatch + ' 株/公顷）</td>' +

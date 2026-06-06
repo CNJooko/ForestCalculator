@@ -25,6 +25,7 @@ ForestCalc.SPECIES = [
     yieldRates: { spec: 0.6, nonSpec: 0.2, fuel: 0.05, waste: 0.15 }, // DB51验证:经济材80%
     defaultHRatio: 0.70,
     yieldDMin: 6, yieldDMax: 50,
+    econBasePct: 80,   // DB51/T 1466
     note: 'DB51省标参考。D=20 H=15→0.248m³。与实际表偏差-7%'
   },
   {
@@ -63,6 +64,7 @@ ForestCalc.SPECIES = [
     yieldRates: { spec: 0.52, nonSpec: 0.20, fuel: 0.05, waste: 0.23 }, // 柳杉经济材72%(估)
     defaultHRatio: 0.75,
     yieldDMin: 6, yieldDMax: 50,
+    econBasePct: 72,   // DB51/T 1462 柳杉
     note: 'DB51省标参考。D=20 H=15→0.233m³。与实际表偏差+15%'
   },
   {
@@ -128,6 +130,7 @@ ForestCalc.SPECIES = [
     a: 0.000052750716, b: 1.9450324, c: 0.93862330, isDynamic: false,
     source: 'LY208-77 四川滇西北阔叶公式', reliability: 'medium',
     yieldRates: { spec: 0.50, nonSpec: 0.20, fuel: 0.05, waste: 0.25 }, // 杨树经济材70%(估)
+    econBasePct: 70,
     defaultHRatio: 0.80,
     yieldDMin: 6, yieldDMax: 50,
     note: '四川杨树通用公式'
@@ -137,6 +140,7 @@ ForestCalc.SPECIES = [
     a: 0.000052750716, b: 1.9450324, c: 0.93862330, isDynamic: false,
     source: 'LY208-77 四川滇西北阔叶公式', reliability: 'medium',
     yieldRates: { spec: 0.42, nonSpec: 0.15, fuel: 0.08, waste: 0.35 }, // 桤木/软阔经济材63%(估)
+    econBasePct: 57,
     defaultHRatio: 0.70,
     yieldDMin: 6, yieldDMax: 50,
     note: '含杨柳桤枫香香椿。贵州DB52/T 822软阔标准已下载'
@@ -212,6 +216,7 @@ ForestCalc.SPECIES = [
     a: 0.0000706094, b: 1.801671, c: 0.997998, isDynamic: false,
     source: 'DB35/T 1823-2019 福建省主要树种二元立木材积表', reliability: 'high',
     yieldRates: { spec: 0.55, nonSpec: 0.20, fuel: 0.05, waste: 0.20 },
+    econBasePct: 75,
     defaultHRatio: 0.80,
     yieldDMin: 6, yieldDMax: 40,
     note: '福建2019年新编表。D=20 H=15→0.2326m³。精度高于LY208-77旧标'
@@ -221,6 +226,7 @@ ForestCalc.SPECIES = [
     a: 0.000070728, b: 1.874518, c: 0.908949, isDynamic: false,
     source: 'DB35/T 1823-2019 福建省主要树种二元立木材积表', reliability: 'high',
     yieldRates: { spec: 0.60, nonSpec: 0.20, fuel: 0.05, waste: 0.15 },
+    econBasePct: 80,
     defaultHRatio: 0.68,
     yieldDMin: 6, yieldDMax: 50,
     note: '福建2019年新编表。D=20 H=15→0.2277m³。与四川DB51/本地表参数不同'
@@ -230,6 +236,7 @@ ForestCalc.SPECIES = [
     a: 0.0000685634, b: 1.933221, c: 0.867885, isDynamic: false,
     source: 'DB35/T 1823-2019 福建省主要树种二元立木材积表', reliability: 'high',
     yieldRates: { spec: 0.45, nonSpec: 0.17, fuel: 0.08, waste: 0.30 },
+    econBasePct: 62,
     defaultHRatio: 0.70,
     yieldDMin: 6, yieldDMax: 50,
     note: '福建阔叶树通用公式，涵盖桉树相思等速生树种。D=20 H=15→0.2355m³'
@@ -239,6 +246,7 @@ ForestCalc.SPECIES = [
     a: 0.000069978, b: 1.8660492, c: 0.905254, isDynamic: false,
     source: 'DB35/T 1823-2019 福建省主要树种二元立木材积表', reliability: 'high',
     yieldRates: { spec: 0.50, nonSpec: 0.18, fuel: 0.07, waste: 0.25 },
+    econBasePct: 68,
     defaultHRatio: 0.72,
     yieldDMin: 6, yieldDMax: 40,
     note: '福建其他针叶通用公式，涵盖火炬松湿地松等。D=20 H=15→0.2175m³'
