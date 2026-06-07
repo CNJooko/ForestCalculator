@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.6.2 (2026-06-07) — 健壮性修补与 CI 修正
+
+- CI 工作流修正：`upload-pages-artifact@v3` → `upload-artifact@v4`（移除无 deploy job 的 Pages 专属 action），清理末尾多余空行
+- parseFloat NaN 兜底：`calcBatch` 中 `yTotalVal` 增加 `|| 75` 回退默认值
+- 主题存储异常处理：`toggleTheme` 中 `localStorage.setItem('fc_theme', ...)` 包裹 try/catch
+- 版本号同步至 v1.6.2（VERSION / index.html footer）
+
+## v1.6.1 (2026-06-07) — 安全性修补与数据修正
+
+- P0 存储型 XSS 修复：renderHistory 中 h.species 增加 escapeHTML 转义
+- P1 安徽马尾松系数修正：a 从 0.000062599 → 0.0000623418，期望值 0.231→0.207m³
+- P1 README.txt 同步：重写为 24 个树种、多省标准、启动方式指 dist/，移除"AI写的"
+- P1 addHistory 异常处理：localStorage.setItem 包裹 try/catch
+
 ## v1.6.0 (2026-06-06) — 健壮性与交互优化
 
 - 撤销栈覆盖行内 D/H/株数编辑（撤销后不会丢失最近修改）

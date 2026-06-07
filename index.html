@@ -893,7 +893,7 @@ body.dark .summary-row td {
   <strong>已获取标准 (8个)</strong>: DB51/T 1462(柳杉) | DB51/T 1466(马尾松) | DB51/T 2918(森林经营) | DB52/T 703(马尾松黔) | DB52/T 822(软阔黔) | DB52/T 826(硬阔黔) | DB35/T 1823(福建) | DB53/T 1422.1(云南松滇) | DB34/T 3345(马尾松皖)<br>
   <strong>参考标准</strong>: LY208-77(部标) | LY/T 2102-2013(编制规程) | GB/T 4814-2013(原木检尺) | DB51/T 1464/1465/1467(四川已废止)<br>
   支持多省标准 · 自定义树种公式 · 本地存储历史
-<br><small style="color:var(--wood-dark);">ForestCalculator v1.6.0 · 24个树种 · 多省标准交叉验证</small>
+<br><small style="color:var(--wood-dark);">ForestCalculator v1.6.2 · 24个树种 · 多省标准交叉验证</small>
 </footer>
 
 <!-- JS 依赖顺序: species-db → storage → calculator → ui → app -->
@@ -1101,13 +1101,13 @@ ForestCalc.SPECIES = [
   // ---- 安徽 DB34/T 3345-2019 ----
   {
     id: 'masson-pine-ah', name: '马尾松(安徽·2019)', latin: 'Pinus massoniana (Anhui)',
-    a: 0.000062599, b: 1.875389, c: 0.918393, isDynamic: false,
+    a: 0.0000623418, b: 1.875389, c: 0.918393, isDynamic: false,
     source: 'DB34/T 3345-2019 安徽省马尾松二元立木材积表', reliability: 'high',
     yieldRates: { spec: 0.60, nonSpec: 0.20, fuel: 0.05, waste: 0.15 },
     defaultHRatio: 0.68,
     yieldDMin: 6, yieldDMax: 50,
     econBasePct: 78,
-    note: '安徽2019年新编表。D=20 H=15→0.231m³。与四川DB51参数不同'
+    note: '安徽2019年新编表。D=20 H=15→0.207m³。与四川DB51参数不同'
   },
 
   // ---- 福建 DB35/T 1823-2019 ----
@@ -1203,7 +1203,7 @@ ForestCalc.addHistory = function(speciesName, dbh, height, count, vol, econ) {
   var hist = ForestCalc.loadHistory();
   hist.unshift({ species: speciesName, dbh: dbh, height: height, count: count, vol: vol.toFixed(4), econ: econ.toFixed(4), time: new Date().toLocaleString() });
   if (hist.length > 50) hist.length = 50;
-  localStorage.setItem(ForestCalc.HIST_KEY, JSON.stringify(hist));
+  try { localStorage.setItem(ForestCalc.HIST_KEY, JSON.stringify(hist)); } catch(e) {}
 };
 
 ForestCalc.clearHistory = function() {
@@ -1363,6 +1363,12 @@ ForestCalc.getYieldRates = function(s) {
 </script>
 <script>
 // ========== UI 渲染与交互 ==========
+function escapeHTML(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
 // 依赖 species-db.js, calculator.js, storage.js
 
 var ForestCalc = window.ForestCalc || {};
@@ -1811,7 +1817,7 @@ ForestCalc.renderBatch = function() {
 ForestCalc.calcBatch = function() {
   var tV=0, tS=0, tN=0, tF=0, tW=0, cnt=0, validCnt=0;
   // 提前检测自定义出材率，避免循环内重复读取 DOM
-  var yTotalVal = parseFloat(document.getElementById('yTotal').value);
+  var yTotalVal = parseFloat(document.getElementById('yTotal').value) || 75;
   var isCustomYield = !isNaN(yTotalVal) && yTotalVal > 0 && yTotalVal <= 1;
   ForestCalc.batchRows.forEach(function(r) {
     if (!r.dbh || r.dbh<=0 || !r.height || r.height<=0) return;
@@ -2031,7 +2037,7 @@ ForestCalc.renderSavedList = function() {
   container.style.display = 'block';
   list.innerHTML = saved.map(function(s, i) {
     return '<span style="cursor:pointer;color:var(--pine);margin-right:12px;" onclick="ForestCalc.applySaved(' + i + ')" title="点击应用">' +
-      s.name + '</span>' +
+      escapeHTML(s.name) + '</span>' +
       '<span style="cursor:pointer;color:var(--danger);font-size:10px;" onclick="ForestCalc.deleteSaved(' + i + ')">✕</span>';
   }).join(' | ');
 };
@@ -2043,7 +2049,7 @@ ForestCalc.renderHistory = function() {
   var panel = document.getElementById('histPanel');
   if (hist.length === 0) { panel.innerHTML = '<span style="color:#8b7355;">暂无记录</span>'; return; }
   panel.innerHTML = '<table style="font-size:11px;width:100%;"><thead><tr><th>时间</th><th>树种</th><th>D(cm)</th><th>H(m)</th><th>株</th><th>蓄积(m³)</th><th>经济材(m³)</th></tr></thead><tbody>' +
-    hist.map(function(h) { return '<tr><td>'+h.time+'</td><td>'+h.species+'</td><td>'+h.dbh+'</td><td>'+h.height+'</td><td>'+h.count+'</td><td>'+h.vol+'</td><td>'+h.econ+'</td></tr>'; }).join('') +
+    hist.map(function(h) { return '<tr><td>'+h.time+'</td><td>'+escapeHTML(h.species)+'</td><td>'+h.dbh+'</td><td>'+h.height+'</td><td>'+h.count+'</td><td>'+h.vol+'</td><td>'+h.econ+'</td></tr>'; }).join('') +
     '</tbody></table>';
 };
 

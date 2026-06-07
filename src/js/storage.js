@@ -21,7 +21,7 @@ ForestCalc.addHistory = function(speciesName, dbh, height, count, vol, econ) {
   var hist = ForestCalc.loadHistory();
   hist.unshift({ species: speciesName, dbh: dbh, height: height, count: count, vol: vol.toFixed(4), econ: econ.toFixed(4), time: new Date().toLocaleString() });
   if (hist.length > 50) hist.length = 50;
-  localStorage.setItem(ForestCalc.HIST_KEY, JSON.stringify(hist));
+  try { localStorage.setItem(ForestCalc.HIST_KEY, JSON.stringify(hist)); } catch(e) {}
 };
 
 ForestCalc.clearHistory = function() {

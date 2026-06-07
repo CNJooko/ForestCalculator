@@ -201,13 +201,13 @@ ForestCalc.SPECIES = [
   // ---- 安徽 DB34/T 3345-2019 ----
   {
     id: 'masson-pine-ah', name: '马尾松(安徽·2019)', latin: 'Pinus massoniana (Anhui)',
-    a: 0.000062599, b: 1.875389, c: 0.918393, isDynamic: false,
+    a: 0.0000623418, b: 1.875389, c: 0.918393, isDynamic: false,
     source: 'DB34/T 3345-2019 安徽省马尾松二元立木材积表', reliability: 'high',
     yieldRates: { spec: 0.60, nonSpec: 0.20, fuel: 0.05, waste: 0.15 },
     defaultHRatio: 0.68,
     yieldDMin: 6, yieldDMax: 50,
     econBasePct: 78,
-    note: '安徽2019年新编表。D=20 H=15→0.231m³。与四川DB51参数不同'
+    note: '安徽2019年新编表。D=20 H=15→0.207m³。与四川DB51参数不同'
   },
 
   // ---- 福建 DB35/T 1823-2019 ----

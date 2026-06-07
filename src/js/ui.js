@@ -1,4 +1,10 @@
 // ========== UI 渲染与交互 ==========
+function escapeHTML(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
 // 依赖 species-db.js, calculator.js, storage.js
 
 var ForestCalc = window.ForestCalc || {};
@@ -447,7 +453,7 @@ ForestCalc.renderBatch = function() {
 ForestCalc.calcBatch = function() {
   var tV=0, tS=0, tN=0, tF=0, tW=0, cnt=0, validCnt=0;
   // 提前检测自定义出材率，避免循环内重复读取 DOM
-  var yTotalVal = parseFloat(document.getElementById('yTotal').value);
+  var yTotalVal = parseFloat(document.getElementById('yTotal').value) || 75;
   var isCustomYield = !isNaN(yTotalVal) && yTotalVal > 0 && yTotalVal <= 1;
   ForestCalc.batchRows.forEach(function(r) {
     if (!r.dbh || r.dbh<=0 || !r.height || r.height<=0) return;
@@ -667,7 +673,7 @@ ForestCalc.renderSavedList = function() {
   container.style.display = 'block';
   list.innerHTML = saved.map(function(s, i) {
     return '<span style="cursor:pointer;color:var(--pine);margin-right:12px;" onclick="ForestCalc.applySaved(' + i + ')" title="点击应用">' +
-      s.name + '</span>' +
+      escapeHTML(s.name) + '</span>' +
       '<span style="cursor:pointer;color:var(--danger);font-size:10px;" onclick="ForestCalc.deleteSaved(' + i + ')">✕</span>';
   }).join(' | ');
 };
@@ -679,7 +685,7 @@ ForestCalc.renderHistory = function() {
   var panel = document.getElementById('histPanel');
   if (hist.length === 0) { panel.innerHTML = '<span style="color:#8b7355;">暂无记录</span>'; return; }
   panel.innerHTML = '<table style="font-size:11px;width:100%;"><thead><tr><th>时间</th><th>树种</th><th>D(cm)</th><th>H(m)</th><th>株</th><th>蓄积(m³)</th><th>经济材(m³)</th></tr></thead><tbody>' +
-    hist.map(function(h) { return '<tr><td>'+h.time+'</td><td>'+h.species+'</td><td>'+h.dbh+'</td><td>'+h.height+'</td><td>'+h.count+'</td><td>'+h.vol+'</td><td>'+h.econ+'</td></tr>'; }).join('') +
+    hist.map(function(h) { return '<tr><td>'+h.time+'</td><td>'+escapeHTML(h.species)+'</td><td>'+h.dbh+'</td><td>'+h.height+'</td><td>'+h.count+'</td><td>'+h.vol+'</td><td>'+h.econ+'</td></tr>'; }).join('') +
     '</tbody></table>';
 };
 
