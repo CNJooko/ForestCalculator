@@ -1,3 +1,5 @@
+'use strict';
+
 // ========== UI 渲染与交互 ==========
 function escapeHTML(str) {
     var div = document.createElement('div');
@@ -57,6 +59,8 @@ ForestCalc.showToast = function(message, type) {
 // ========== Confirm 模态框 ==========
 ForestCalc.showConfirm = function(message, onConfirm) {
   var overlay = document.getElementById('confirmOverlay');
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
   document.getElementById('confirmMessage').textContent = message;
   overlay.style.display = 'flex';
   var yesBtn = document.getElementById('confirmYes');
@@ -433,10 +437,10 @@ ForestCalc.renderBatch = function() {
     });
     h += '<tr>' +
       '<td>' + (i+1) + '</td>' +
-      '<td><select onchange="ForestCalc._pushUndo();ForestCalc.batchRows[' + i + '].speciesIdx=parseInt(this.value);ForestCalc.batchRows[' + i + ']._vol=null;if(document.getElementById(\'batchSummary\').style.display!==\'none\')ForestCalc.calcBatch();else ForestCalc.renderBatch();">' + speciesOptions + '</select></td>' +
-      '<td><input type="number" value="' + r.dbh + '" step="0.1" onchange="ForestCalc._pushUndo();ForestCalc.batchRows[' + i + '].dbh=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();" onblur="ForestCalc.autoFillBatchHeight(' + i + ');"></td>' +
-      '<td><input type="number" value="' + r.height + '" step="0.1" onchange="ForestCalc._pushUndo();ForestCalc.batchRows[' + i + '].height=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
-      '<td><input type="number" value="' + (r.count || 1) + '" min="1" step="1" style="width:48px;padding:5px;text-align:center;" onchange="ForestCalc._pushUndo();var c=parseInt(this.value)||1;ForestCalc.batchRows[' + i + '].count=c;ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
+      '<td><select onchange="ForestCalc._pushUndo();ForestCalc.batchRows[' + i + '].speciesIdx=parseInt(this.value);ForestCalc.batchRows[' + i + ']._vol=null;if(document.getElementById(\'batchSummary\').style.display!==\'none\')ForestCalc.calcBatch();else ForestCalc.renderBatch();" aria-label="选择树种">' + speciesOptions + '</select></td>' +
+      '<td><input type="number" value="' + r.dbh + '" step="0.1" aria-label="胸径(cm)" onchange="ForestCalc._pushUndo();ForestCalc.batchRows[' + i + '].dbh=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();" onblur="ForestCalc.autoFillBatchHeight(' + i + ');"></td>' +
+      '<td><input type="number" value="' + r.height + '" step="0.1" aria-label="树高(m)" onchange="ForestCalc._pushUndo();ForestCalc.batchRows[' + i + '].height=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
+      '<td><input type="number" value="' + (r.count || 1) + '" min="1" step="1" style="width:48px;padding:5px;text-align:center;" aria-label="株数" onchange="ForestCalc._pushUndo();var c=parseInt(this.value)||1;ForestCalc.batchRows[' + i + '].count=c;ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
       '<td>' + (vv!=null?vv.toFixed(4):'—') + '</td><td>' + (sp!=null?sp.toFixed(4):'—') + '</td><td>' + (ns!=null?ns.toFixed(4):'—') + '</td><td>' + (fl!=null?fl.toFixed(4):'—') + '</td><td>' + (wa!=null?wa.toFixed(4):'—') + '</td>' +
       '<td>' +
 (i > 0 ? '<button class="btn btn-outline btn-sm" onclick="ForestCalc.moveBatchRow(' + i + ',-1)" title="上移">↑</button>' : '') +

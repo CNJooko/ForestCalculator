@@ -1,3 +1,5 @@
+'use strict';
+
 // ========== 本地存储操作（纯数据读写，无 DOM 操作） ==========
 // 依赖 species-db.js 中的 ForestCalc.STORAGE_KEY、ForestCalc.HIST_KEY
 

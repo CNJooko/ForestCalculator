@@ -1,3 +1,5 @@
+'use strict';
+
 // ========== 核心计算逻辑 ==========
 // 依赖 species-db.js 中的 ForestCalc.SPECIES
 

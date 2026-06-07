@@ -33,7 +33,12 @@
   --shadow-sm: 0 1px 4px rgba(26,15,6,0.12);
   --shadow: 0 3px 16px rgba(26,15,6,0.16);
   --shadow-lg: 0 8px 36px rgba(26,15,6,0.2);
+  --primary: var(--pine);
+  --hero-vol-dark: rgba(80,140,100,0.12);
+  --hero-area-dark: rgba(220,150,80,0.12);
 }
+
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
 /* Dark mode variables */
 body.dark {
@@ -81,8 +86,8 @@ body.dark .callout-info { background: #18222a; }
 body.dark .badge-high { background: #1a3a1f; color: #4a9a5a; }
 body.dark .badge-medium { background: #3a2e10; color: #d4a02c; }
 body.dark .badge-low { background: #3a1518; color: #e0554b; }
-body.dark .volume-hero { background: linear-gradient(135deg, rgba(80,140,100,0.12), rgba(124,179,66,0.06)); }
-body.dark .area-hero { background: linear-gradient(135deg, rgba(220,150,80,0.12), rgba(230,168,23,0.06)); }
+body.dark .volume-hero { background: linear-gradient(135deg, var(--hero-vol-dark), rgba(124,179,66,0.06)); }
+body.dark .area-hero { background: linear-gradient(135deg, var(--hero-area-dark), rgba(230,168,23,0.06)); }
 body.dark thead th { background: linear-gradient(180deg, var(--bark), #1a1a1a); }
 body.dark .species-bar { color: #b0a090; }
 body.dark .yield-item .yield-label { color: #b0a090; }
@@ -560,9 +565,11 @@ tbody input, tbody select {
 }
 
 /* Responsive */
-@media (max-width: 640px) {
+@media (max-width: 600px) {
+  body { font-size: 14px; }
   .card { padding: 18px 16px; }
-  .hero h1 { font-size: 26px; }
+  .hero h1 { font-size: 24px; }
+  .card-header h2 { font-size: 18px; }
   .volume-hero .volume-number { font-size: 36px; }
 }
 
@@ -717,7 +724,7 @@ body.dark .summary-row td {
   <div class="calc-grid cols-4">
     <div class="form-group">
       <label>树种</label>
-      <input type="text" id="speciesSearch" placeholder="🔍 搜索树种..." style="margin-bottom:4px;padding:7px 10px;border:2px solid rgba(196,165,110,0.35);border-radius:var(--radius);font-size:13px;font-family:inherit;width:100%;">
+      <input type="text" id="speciesSearch" placeholder="🔍 搜索树种..." aria-label="搜索树种" style="margin-bottom:4px;padding:7px 10px;border:2px solid rgba(196,165,110,0.35);border-radius:var(--radius);font-size:13px;font-family:inherit;width:100%;">
       <select id="speciesSelect" onchange="ForestCalc.onSpeciesChange()"></select>
     </div>
     <div class="form-group">
@@ -730,7 +737,7 @@ body.dark .summary-row td {
     </div>
     <div class="form-group">
       <label>棵数 <span class="hint">相同规格的株数</span></label>
-      <input type="number" id="countInput" placeholder="1" value="1" step="1" min="1" max="99999">
+      <input type="number" id="countInput" placeholder="1" value="1" step="1" min="1" max="99999" aria-label="棵数">
     </div>
   </div>
 
@@ -753,7 +760,7 @@ body.dark .summary-row td {
   <div class="area-row">
     <div class="form-group area-group">
       <label>采伐面积(亩) <span class="hint">— 可选，填了就算亩均</span></label>
-      <input type="number" id="areaInput" placeholder="留空不计算亩均" step="0.1" min="0.1" max="99999">
+      <input type="number" id="areaInput" placeholder="留空不计算亩均" step="0.1" min="0.1" max="99999" aria-label="采伐面积(亩)">
     </div>
   </div>
 
@@ -771,10 +778,10 @@ body.dark .summary-row td {
     <span class="yield-toggle" onclick="ForestCalc.toggleCustom()">自定义树种/公式 ▸ 点击展开</span>
     <div class="yield-fields" id="customFields" style="display:none;">
       <div class="yield-inputs">
-        <label>树种名称 <input type="text" id="cName" placeholder="如：自定柳杉" style="width:140px;"></label>
-        <label>a <input type="number" id="cA" placeholder="a" step="0.000000000001" style="width:130px;"></label>
-        <label>b <input type="number" id="cB" placeholder="b" step="0.000001"></label>
-        <label>c <input type="number" id="cC" placeholder="c" step="0.000001"></label>
+        <label>树种名称 <input type="text" id="cName" placeholder="如：自定柳杉" aria-label="自定义树种名称" style="width:140px;"></label>
+        <label>a <input type="number" id="cA" placeholder="a" step="0.000000000001" aria-label="公式系数a" style="width:130px;"></label>
+        <label>b <input type="number" id="cB" placeholder="b" step="0.000001" aria-label="公式系数b"></label>
+        <label>c <input type="number" id="cC" placeholder="c" step="0.000001" aria-label="公式系数c"></label>
         <button class="btn btn-sm btn-outline" onclick="ForestCalc.saveCustom()" style="align-self:flex-end;">保存此公式</button>
       </div>
       <span style="font-size:11px;color:#8b7355;">公式 V = a × D<sup>b</sup> × H<sup>c</sup>。填 a,b,c 后优先使用。可保存到浏览器，下次使用。</span>
@@ -893,12 +900,14 @@ body.dark .summary-row td {
   <strong>已获取标准 (8个)</strong>: DB51/T 1462(柳杉) | DB51/T 1466(马尾松) | DB51/T 2918(森林经营) | DB52/T 703(马尾松黔) | DB52/T 822(软阔黔) | DB52/T 826(硬阔黔) | DB35/T 1823(福建) | DB53/T 1422.1(云南松滇) | DB34/T 3345(马尾松皖)<br>
   <strong>参考标准</strong>: LY208-77(部标) | LY/T 2102-2013(编制规程) | GB/T 4814-2013(原木检尺) | DB51/T 1464/1465/1467(四川已废止)<br>
   支持多省标准 · 自定义树种公式 · 本地存储历史
-<br><small style="color:var(--wood-dark);">ForestCalculator v1.6.2 · 24个树种 · 多省标准交叉验证</small>
+<br><small style="color:var(--wood-dark);">ForestCalculator v1.7.0 · 24个树种 · 多省标准交叉验证</small>
 </footer>
 
 <!-- JS 依赖顺序: species-db → storage → calculator → ui → app -->
 <script>
-﻿// ========== 树种数据库 + 常量 + 工具函数 ==========
+﻿'use strict';
+
+// ========== 树种数据库 + 常量 + 工具函数 ==========
 // 此文件必须最先加载，为所有后续模块提供基础数据
 
 var ForestCalc = window.ForestCalc || {};
@@ -1180,6 +1189,8 @@ ForestCalc.getCustomSpecies = function() {
 
 </script>
 <script>
+'use strict';
+
 // ========== 本地存储操作（纯数据读写，无 DOM 操作） ==========
 // 依赖 species-db.js 中的 ForestCalc.STORAGE_KEY、ForestCalc.HIST_KEY
 
@@ -1211,6 +1222,8 @@ ForestCalc.clearHistory = function() {
 };
 </script>
 <script>
+'use strict';
+
 // ========== 核心计算逻辑 ==========
 // 依赖 species-db.js 中的 ForestCalc.SPECIES
 
@@ -1362,6 +1375,8 @@ ForestCalc.getYieldRates = function(s) {
 };
 </script>
 <script>
+'use strict';
+
 // ========== UI 渲染与交互 ==========
 function escapeHTML(str) {
     var div = document.createElement('div');
@@ -1421,6 +1436,8 @@ ForestCalc.showToast = function(message, type) {
 // ========== Confirm 模态框 ==========
 ForestCalc.showConfirm = function(message, onConfirm) {
   var overlay = document.getElementById('confirmOverlay');
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
   document.getElementById('confirmMessage').textContent = message;
   overlay.style.display = 'flex';
   var yesBtn = document.getElementById('confirmYes');
@@ -1797,10 +1814,10 @@ ForestCalc.renderBatch = function() {
     });
     h += '<tr>' +
       '<td>' + (i+1) + '</td>' +
-      '<td><select onchange="ForestCalc._pushUndo();ForestCalc.batchRows[' + i + '].speciesIdx=parseInt(this.value);ForestCalc.batchRows[' + i + ']._vol=null;if(document.getElementById(\'batchSummary\').style.display!==\'none\')ForestCalc.calcBatch();else ForestCalc.renderBatch();">' + speciesOptions + '</select></td>' +
-      '<td><input type="number" value="' + r.dbh + '" step="0.1" onchange="ForestCalc._pushUndo();ForestCalc.batchRows[' + i + '].dbh=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();" onblur="ForestCalc.autoFillBatchHeight(' + i + ');"></td>' +
-      '<td><input type="number" value="' + r.height + '" step="0.1" onchange="ForestCalc._pushUndo();ForestCalc.batchRows[' + i + '].height=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
-      '<td><input type="number" value="' + (r.count || 1) + '" min="1" step="1" style="width:48px;padding:5px;text-align:center;" onchange="ForestCalc._pushUndo();var c=parseInt(this.value)||1;ForestCalc.batchRows[' + i + '].count=c;ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
+      '<td><select onchange="ForestCalc._pushUndo();ForestCalc.batchRows[' + i + '].speciesIdx=parseInt(this.value);ForestCalc.batchRows[' + i + ']._vol=null;if(document.getElementById(\'batchSummary\').style.display!==\'none\')ForestCalc.calcBatch();else ForestCalc.renderBatch();" aria-label="选择树种">' + speciesOptions + '</select></td>' +
+      '<td><input type="number" value="' + r.dbh + '" step="0.1" aria-label="胸径(cm)" onchange="ForestCalc._pushUndo();ForestCalc.batchRows[' + i + '].dbh=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();" onblur="ForestCalc.autoFillBatchHeight(' + i + ');"></td>' +
+      '<td><input type="number" value="' + r.height + '" step="0.1" aria-label="树高(m)" onchange="ForestCalc._pushUndo();ForestCalc.batchRows[' + i + '].height=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
+      '<td><input type="number" value="' + (r.count || 1) + '" min="1" step="1" style="width:48px;padding:5px;text-align:center;" aria-label="株数" onchange="ForestCalc._pushUndo();var c=parseInt(this.value)||1;ForestCalc.batchRows[' + i + '].count=c;ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
       '<td>' + (vv!=null?vv.toFixed(4):'—') + '</td><td>' + (sp!=null?sp.toFixed(4):'—') + '</td><td>' + (ns!=null?ns.toFixed(4):'—') + '</td><td>' + (fl!=null?fl.toFixed(4):'—') + '</td><td>' + (wa!=null?wa.toFixed(4):'—') + '</td>' +
       '<td>' +
 (i > 0 ? '<button class="btn btn-outline btn-sm" onclick="ForestCalc.moveBatchRow(' + i + ',-1)" title="上移">↑</button>' : '') +
@@ -2262,8 +2279,20 @@ ForestCalc.showYieldTable = function() {
 };
 </script>
 <script>
+'use strict';
+
 // ========== 应用入口 — 事件绑定与初始化 ==========
 // 依赖 species-db.js, storage.js, calculator.js, ui.js
+
+window.onerror = function(msg, url, line) {
+    console.error('ForestCalculator Error:', msg, 'at', url, 'line', line);
+    var toast = document.createElement('div');
+    toast.className = 'toast toast-error';
+    toast.textContent = '程序遇到错误，请刷新页面后重试';
+    document.body.appendChild(toast);
+    setTimeout(function() { toast.remove(); }, 5000);
+    return false;
+};
 
 // 页面加载完成后初始化应用和绑定事件
 document.addEventListener('DOMContentLoaded', function() {

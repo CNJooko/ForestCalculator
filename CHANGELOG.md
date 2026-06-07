@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.7.0 (2026-06-07) — a11y无障碍、移动端响应式、错误边界、use strict、暗色模式CSS变量收敛
+
+- a11y Phase A：结果面板 aria-live、Toast role="alert"、Confirm 模态 role="dialog"+aria-modal、关键输入框 aria-label、:focus-visible 焦点环
+- 移动端响应式：cols-4 改用 auto-fit minmax、批量表格溢出滚动（已有）、600px 断点移动端字体适配
+- 全局错误边界：window.onerror 捕获未处理异常并 Toast 提示
+- 全部 5 个 JS 文件添加 `'use strict'` 声明
+- 暗色模式 CSS 变量收敛：volume-hero / area-hero 硬编码 rgba 改为 --hero-vol-dark / --hero-area-dark
+
 ## v1.6.2 (2026-06-07) — 健壮性修补与 CI 修正
 
 - CI 工作流修正：`upload-pages-artifact@v3` → `upload-artifact@v4`（移除无 deploy job 的 Pages 专属 action），清理末尾多余空行
