@@ -460,22 +460,23 @@ ForestCalc.renderBatch = function() {
 ForestCalc.calcBatch = function() {
   var tV=0, tS=0, tN=0, tF=0, tW=0, cnt=0, validCnt=0;
   // 提前检测自定义出材率，避免循环内重复读取 DOM
-  var yTotalVal = parseFloat(document.getElementById('yTotal').value) || 75;
+  var yTotalVal = parseFloat(document.getElementById('yTotal').value);
   var isCustomYield = !isNaN(yTotalVal) && yTotalVal > 0 && yTotalVal <= 1;
   ForestCalc.batchRows.forEach(function(r) {
     if (!r.dbh || r.dbh<=0 || !r.height || r.height<=0) return;
     var s = ForestCalc.SPECIES[r.speciesIdx];
     if (s.a === 0) return; // skip species with no formula
     var v = ForestCalc.calcVolume(s, r.dbh, r.height);
-    var y = ForestCalc.calcYield(s, v, r.dbh, r.height);
-    // 若用户设置了自定义综合出材率，则覆盖动态出材率
-    if (isCustomYield) {
-      var yr = ForestCalc.getYieldRates(s);
-      y.spec = v * yr.spec;
-      y.nonSpec = v * yr.nonSpec;
-      y.fuel = v * yr.fuel;
-      y.waste = v * yr.waste;
-    }
+    // 与 calcSingle 保持一致：直接传参调用 calcYieldRates，解耦 DOM
+    var yr = ForestCalc.calcYieldRates(s, isCustomYield ? yTotalVal : null);
+    var y = {
+      spec: v * yr.spec,
+      nonSpec: v * yr.nonSpec,
+      fuel: v * yr.fuel,
+      waste: v * yr.waste,
+      econRate: yr.spec + yr.nonSpec,
+      dynamic: !yr.custom
+    };
     var c = r.count || 1;
     r._vol=v*c; r._spec=y.spec*c; r._nonSpec=y.nonSpec*c; r._fuel=y.fuel*c; r._waste=y.waste*c;
     tV+=v*c; tS+=y.spec*c; tN+=y.nonSpec*c; tF+=y.fuel*c; tW+=y.waste*c;
@@ -781,23 +782,36 @@ ForestCalc.showCompare = function() {
   var d = parseFloat(document.getElementById('dbhInput').value) || 20;
   var h = parseFloat(document.getElementById('heightInput').value) || 15;
 
-  var groups = [
-    { title: '马尾松 (5省)', ids: ['masson-pine','masson-pine-db51','pine-gz','masson-pine-ah','masson-pine-fj'] },
-    { title: '杉木 (3省)', ids: ['chinese-fir','fir-gz','chinese-fir-fj'] },
-    { title: '柏木 (2省)', ids: ['cypress','cypress-gz'] },
-    { title: '阔叶树 (3省)', ids: ['soft-broad','soft-gz','broadleaf-fj'] }
-  ];
+  // 按树种 groupKey 动态分组，不再硬编码 ID 列表
+  var groups = {};
+  ForestCalc.SPECIES.forEach(function(s) {
+    if (!s.id) return;
+    // 从 id 中提取分组键：取第一个短横线前的部分，或完整 id
+    var key = s.id.split('-')[0];
+    // 合并同科/同属：masson-pine 和 masson-pine-db51 都归为 masson-pine
+    var groupKey = s.id;
+    if (s.id.indexOf('masson-pine') === 0) groupKey = 'masson-pine-group';
+    else if (s.id.indexOf('chinese-fir') === 0) groupKey = 'chinese-fir-group';
+    else if (s.id.indexOf('cypress') === 0) groupKey = 'cypress-group';
+    else if (s.id.indexOf('soft-') === 0) groupKey = 'soft-broad-group';
+    else if (s.id.indexOf('broadleaf') === 0) groupKey = 'broadleaf-group';
+    else if (s.id.indexOf('other-conifer') === 0) groupKey = 'other-conifer-group';
+    else if (s.id.indexOf('yunnan-pine') === 0) groupKey = 'yunnan-pine-group';
+    else groupKey = s.id;
+
+    if (!groups[groupKey]) groups[groupKey] = { title: s.name.split('(')[0] + ' (多省)', items: [] };
+    groups[groupKey].items.push(s);
+  });
 
   var html = '<div style="margin-top:16px;"><h4>📊 跨省标准对比 (D=' + d + 'cm H=' + h + 'm)</h4>';
-  groups.forEach(function(g) {
+  Object.keys(groups).forEach(function(key) {
+    var g = groups[key];
     html += '<table style="width:100%;margin-bottom:10px;border-collapse:collapse;font-size:13px;">';
     html += '<tr style="background:rgba(196,165,110,0.08);"><th colspan="5" style="text-align:left;padding:6px 8px;">' + g.title + '</th></tr>';
     html += '<tr style="border-bottom:2px solid rgba(196,165,110,0.3);color:var(--wood);">';
     html += '<th style="text-align:left;">标准</th><th>材积(m³)</th><th>经济材率</th><th>规格材(m³)</th><th style="text-align:left;">来源</th></tr>';
 
-    g.ids.forEach(function(sid) {
-      var s = ForestCalc.SPECIES.find(function(x) { return x.id === sid; });
-      if (!s) return;
+    g.items.forEach(function(s) {
       var vol = ForestCalc.calcVolume(s, d, h);
       if (vol === null) return;
       var y = ForestCalc.calcYield(s, vol, d, h);

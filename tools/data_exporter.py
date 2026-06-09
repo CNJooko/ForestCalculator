@@ -51,15 +51,16 @@ def parse_species_db(filepath: Path) -> list[SpeciesData]:
         id_m = re.search(r"id:\s*'([^']*)'", block)
         name_m = re.search(r"name:\s*'([^']*)'", block)
         latin_m = re.search(r"latin:\s*'([^']*)'", block)
-        a_m = re.search(r"a:\s*([\d.eE+-]+)", block)
-        b_m = re.search(r"(?<!b)b:\s*([\d.eE+-]+)", block)
-        c_m = re.search(r"(?<!c)c:\s*([\d.eE+-]+)", block)
+        a_m = re.search(r"\ba:\s*([\d.eE+-]+)", block)
         is_dyn_m = re.search(r"isDynamic:\s*(true|false)", block)
 
-        if not all([id_m, name_m, latin_m, a_m, b_m, c_m, is_dyn_m]):
+        if not all([id_m, name_m, latin_m, a_m, is_dyn_m]):
             continue
 
-        # 修复 b/c 匹配：取常规 b/c（不是 b1/b2/c1/c2）
+        # 修复 b/c 匹配：用 \b 边界匹配，避免误匹配 b1/b2/c1/c2
+        b_m = re.search(r"(?m)^\s*b:\s*([\d.eE+-]+)", block, re.MULTILINE)
+        c_m = re.search(r"(?m)^\s*c:\s*([\d.eE+-]+)", block, re.MULTILINE)
+        # 变指数模型：b/c 为 0 或不存在，此时用 isDynamic 判断
         b_val = float(b_m.group(1)) if b_m else 0.0
         c_val = float(c_m.group(1)) if c_m else 0.0
 
@@ -251,7 +252,7 @@ def export_complete_report(species_list: list[SpeciesData]) -> Path:
         "| DB52/T 773-2012 | 贵州 | — | 柏木(贵州) |",
         "| DB52/T 822-2013 | 贵州 | ⚠️ 扫描版 | 软阔(贵州) |",
         "| DB52/T 826-2013 | 贵州 | ✅ | 硬阔(贵州) |",
-        "| DB35/T 1823-2019 | 福建 | ✅ 4公式 | ⚠️ 未集成 |",
+        "| DB35/T 1823-2019 | 福建 | ✅ 4公式 | 已集成（杉木福建/马尾松福建/阔叶树福建/其他针叶福建） |",
         "| DB53/T 1422.1-2025 | 云南 | ✅ OCR | 云南松(天然/人工) |",
         "| DB34/T 3345-2019 | 安徽 | ⚠️ FDIS | 未集成 |",
         "| 本地材积表 | — | ✅ | 马尾松(本地) + 柳杉(本地) |",
