@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "tools"))
 
-from regression_validator import calc_volume, Species
+from regression_validator import calc_volume, Species, parse_species_db as parse_species
 
 
 class TestCoreFormulas(unittest.TestCase):
@@ -137,16 +137,16 @@ class TestCoreFormulas(unittest.TestCase):
     # ---------- 边界值测试 ----------
 
     def test_boundary_dbh_zero(self):
-        """边界值: D=0 应返回 0"""
+        """边界值: D=0 应抛出 ValueError"""
         sp = self._make_species("测试", 0.00005, 1.8, 1.0)
-        vol = calc_volume(sp, 0, 15)
-        self.assertEqual(vol, 0.0, f"D=0 材积应为 0, 实际 {vol}")
+        with self.assertRaises(ValueError):
+            calc_volume(sp, 0, 15)
 
     def test_boundary_height_zero(self):
-        """边界值: H=0 应返回 0"""
+        """边界值: H=0 应抛出 ValueError"""
         sp = self._make_species("测试", 0.00005, 1.8, 1.0)
-        vol = calc_volume(sp, 20, 0)
-        self.assertEqual(vol, 0.0, f"H=0 材积应为 0, 实际 {vol}")
+        with self.assertRaises(ValueError):
+            calc_volume(sp, 20, 0)
 
     def test_boundary_large_dbh(self):
         """边界值: D=300 不报错且给出合理正值"""
@@ -198,7 +198,7 @@ class TestCoreFormulas(unittest.TestCase):
 
     def test_anhui_masson_pine(self):
         """安徽马尾松(DB34/T 3345-2019): D=20 H=15 → ~0.231m³"""
-        sp = self._make_species("马尾松(安徽)", 0.000062599, 1.875389, 0.918393)
+        sp = self._make_species("马尾松(安徽)", 0.0000623418, 1.875389, 0.918393)
         vol = calc_volume(sp, 20, 15)
         self.assertGreater(vol, 0.15)
         self.assertLess(vol, 0.35)
@@ -396,6 +396,95 @@ class TestYieldRatesDynamic(unittest.TestCase):
 
         self.assertAlmostEqual(totalVol, vol * 1200, places=4)
         self.assertAlmostEqual(totalSpec + totalNonSpec + totalFuel + totalWaste, totalVol, places=4)
+
+
+class TestBoundaryInputs(unittest.TestCase):
+    """边界输入测试。"""
+
+    def _make_sp(self, a=0.0001, b=1.8, c=0.9):
+        return Species(name="test", latin="Test sp.", a=a, b=b, c=c, is_dynamic=False)
+
+    def test_dbh_zero(self):
+        """DBH=0 应抛出 ValueError"""
+        sp = self._make_sp()
+        with self.assertRaises(ValueError):
+            calc_volume(sp, 0, 15)
+
+    def test_height_zero(self):
+        """Height=0 应抛出 ValueError"""
+        sp = self._make_sp()
+        with self.assertRaises(ValueError):
+            calc_volume(sp, 20, 0)
+
+    def test_negative_dbh(self):
+        """负 DBH 应抛出 ValueError"""
+        sp = self._make_sp(b=2.0)
+        with self.assertRaises(ValueError):
+            calc_volume(sp, -5, 15)
+
+    def test_extreme_dbh(self):
+        """极端大径级 D=200 H=60"""
+        sp = self._make_sp(a=0.0000589718432, b=1.86942693, c=0.99076507)
+        vol = calc_volume(sp, 200, 60)
+        self.assertGreater(vol, 0)
+        self.assertLess(vol, 100)
+
+    def test_zero_coefficient(self):
+        """a=0 应返回 0"""
+        sp = self._make_sp(a=0)
+        vol = calc_volume(sp, 20, 15)
+        self.assertEqual(vol, 0)
+
+
+class TestYieldRateBounds(unittest.TestCase):
+    """出材率边界测试。"""
+
+    def test_yield_sum_equals_one(self):
+        """每个树种的出材率四项之和应为 1"""
+        species_list = parse_species(ROOT / "src" / "js" / "species-db.js")
+        for s in species_list:
+            if s.yieldRates:
+                total = s.yieldRates["spec"] + s.yieldRates["nonSpec"] + s.yieldRates["fuel"] + s.yieldRates["waste"]
+                self.assertAlmostEqual(total, 1.0, delta=0.005,
+                    msg=f"{s.name} 出材率之和={total}≠1.0")
+
+    def test_all_species_parsed(self):
+        """应解析出 24 个树种"""
+        species_list = parse_species(ROOT / "src" / "js" / "species-db.js")
+        self.assertEqual(len(species_list), 24)
+
+
+class TestBatchLogic(unittest.TestCase):
+    """批量汇总逻辑测试。"""
+
+    def _make_sp(self, a=0.0000589718432, b=1.86942693, c=0.99076507):
+        return Species(name="test", latin="Test sp.", a=a, b=b, c=c, is_dynamic=False)
+
+    def test_multi_row_sum(self):
+        """多行汇总：总蓄积 = 各行之和"""
+        sp = self._make_sp()
+        rows = [
+            calc_volume(sp, 20, 15),
+            calc_volume(sp, 18, 14),
+            calc_volume(sp, 22, 16),
+        ]
+        total = sum(rows)
+        self.assertGreater(total, 0)
+        # 验证不是简单的单行×3
+        self.assertNotEqual(total, rows[0] * 3)
+
+    def test_per_hectare_computation(self):
+        """公顷蓄积 = 单株平均 × 密度"""
+        sp = self._make_sp()
+        rows = [
+            calc_volume(sp, 20, 15),
+            calc_volume(sp, 22, 16),
+        ]
+        avg_vol = sum(rows) / len(rows)
+        density = 1500
+        ha_vol = avg_vol * density
+        expected = sum(rows) / len(rows) * density
+        self.assertAlmostEqual(ha_vol, expected, delta=0.001)
 
 
 if __name__ == "__main__":

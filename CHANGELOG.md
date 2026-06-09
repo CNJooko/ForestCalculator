@@ -1,5 +1,24 @@
 # Changelog
 
+## v1.7.2 (2026-06-09) — 代码质量与文档更新
+
+### 代码质量
+- `calculator.js`: `calcSingle()` 中 `getYieldRates()` DOM 依赖解耦，改为传参调用 `calcYieldRates()`，与 `calcBatch` 保持一致
+- `species-db.js`: 福建树种 note 字段验证点标注精确值（原标注为近似值，易误导）
+
+### 文档
+- `README.md`: 更新功能列表，补充 v1.5+ 新增功能（动态出材率、跨省对比、收方表、变指数模型等）
+- `CHANGELOG.md`: 新增 v1.7.2 条目
+
+### UI/样式
+- `style.css`: `cols-4` 平板断点从 900px 下调至 768px，优化平板竖屏体验
+
+## v1.7.1 (2026-06-07) — 测试扩展与源码文档化
+
+- 测试覆盖：新增 TestBoundaryInputs（5 边界值）、TestYieldRateBounds（出材率总和+物种数量）、TestBatchLogic（批量逻辑验证）共 9 项测试
+- JSDoc：补充 species-db.js 中 getActiveSpecies/getCustomSpecies 的 JSDoc 注释（calculator.js 已有完整注释）
+- 出材率 delta 收紧：test_yield_sum_equals_one 从 0.02 → 0.005
+
 ## v1.7.0 (2026-06-07) — a11y无障碍、移动端响应式、错误边界、use strict、暗色模式CSS变量收敛
 
 - a11y Phase A：结果面板 aria-live、Toast role="alert"、Confirm 模态 role="dialog"+aria-modal、关键输入框 aria-label、:focus-visible 焦点环

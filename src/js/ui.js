@@ -1,11 +1,11 @@
 'use strict';
 
 // ========== UI 渲染与交互 ==========
-function escapeHTML(str) {
+ForestCalc.escapeHTML = function(str) {
     var div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
-}
+};
 
 // 依赖 species-db.js, calculator.js, storage.js
 
@@ -211,7 +211,10 @@ ForestCalc.calcSingle = function() {
 
   var vol1 = ForestCalc.calcVolume(s, dbh, height);
   var vol = vol1 * count;
-  var yr = ForestCalc.getYieldRates(s);
+  // 与 calcBatch 保持一致：直接传参调用 calcYieldRates，解耦 DOM
+  var yTotalVal = parseFloat(document.getElementById('yTotal').value) || 0;
+  var customTotal = (yTotalVal > 0 && yTotalVal <= 1) ? yTotalVal : null;
+  var yr = ForestCalc.calcYieldRates(s, customTotal);
   var y1 = { spec: vol1*yr.spec, nonSpec: vol1*yr.nonSpec, fuel: vol1*yr.fuel, waste: vol1*yr.waste };
   var y = {
     spec: y1.spec * count,
@@ -677,7 +680,7 @@ ForestCalc.renderSavedList = function() {
   container.style.display = 'block';
   list.innerHTML = saved.map(function(s, i) {
     return '<span style="cursor:pointer;color:var(--pine);margin-right:12px;" onclick="ForestCalc.applySaved(' + i + ')" title="点击应用">' +
-      escapeHTML(s.name) + '</span>' +
+      ForestCalc.escapeHTML(s.name) + '</span>' +
       '<span style="cursor:pointer;color:var(--danger);font-size:10px;" onclick="ForestCalc.deleteSaved(' + i + ')">✕</span>';
   }).join(' | ');
 };
@@ -689,7 +692,7 @@ ForestCalc.renderHistory = function() {
   var panel = document.getElementById('histPanel');
   if (hist.length === 0) { panel.innerHTML = '<span style="color:#8b7355;">暂无记录</span>'; return; }
   panel.innerHTML = '<table style="font-size:11px;width:100%;"><thead><tr><th>时间</th><th>树种</th><th>D(cm)</th><th>H(m)</th><th>株</th><th>蓄积(m³)</th><th>经济材(m³)</th></tr></thead><tbody>' +
-    hist.map(function(h) { return '<tr><td>'+h.time+'</td><td>'+escapeHTML(h.species)+'</td><td>'+h.dbh+'</td><td>'+h.height+'</td><td>'+h.count+'</td><td>'+h.vol+'</td><td>'+h.econ+'</td></tr>'; }).join('') +
+    hist.map(function(h) { return '<tr><td>'+h.time+'</td><td>'+ForestCalc.escapeHTML(h.species)+'</td><td>'+h.dbh+'</td><td>'+h.height+'</td><td>'+h.count+'</td><td>'+h.vol+'</td><td>'+h.econ+'</td></tr>'; }).join('') +
     '</tbody></table>';
 };
 

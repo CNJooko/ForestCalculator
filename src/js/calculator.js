@@ -7,6 +7,14 @@ var ForestCalc = window.ForestCalc || {};
 
 // 二元立木材积公式: V = a × D^b × H^c
 // 变指数模型: V = a × D^(b1+b2(D+H)) × H^(c1+c2(D+H))
+/**
+ * 二元材积公式 V = a × D^b × H^c
+ * 变指数模型: V = a × D^(b1+b2(D+H)) × H^(c1+c2(D+H))
+ * @param {object} s - 树种对象，包含 a/b/c 或变指数参数 b1/b2/c1/c2
+ * @param {number} dbh - 胸径 (cm)
+ * @param {number} height - 树高 (m)
+ * @returns {number} 单株材积 (m³)，无效输入或 a=0 时返回 0 或 null
+ */
 ForestCalc.calcVolume = function(s, dbh, height) {
   if (!isFinite(dbh) || !isFinite(height) || dbh <= 0 || height <= 0) return 0;
   if (s.a === 0) return null;
@@ -20,6 +28,14 @@ ForestCalc.calcVolume = function(s, dbh, height) {
 // 动态出材率 = f(D, H, speciesGroup)
 // 每树种独立基准经济材率(econBasePct)，D/H敏感性参照DB51/T 1466马尾松验证斜率
 // 斜率: +0.18%/cm DBH, +0.34%/m Height (153点回归 R²=0.977)
+/**
+ * 动态出材率计算 = f(D, H, speciesGroup)
+ * @param {object} s - 树种对象，含 econBasePct 和 yieldRates
+ * @param {number} volume - 单株材积 (m³)
+ * @param {number} dbh - 胸径 (cm)
+ * @param {number} height - 树高 (m)
+ * @returns {{ spec: number, nonSpec: number, fuel: number, waste: number, econRate: number, dynamic: boolean }} 出材率分配结果 (单位 m³)
+ */
 ForestCalc.calcYield = function(s, volume, dbh, height) {
   var d = dbh || 20, h = height || 15;
 

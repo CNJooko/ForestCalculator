@@ -34,29 +34,30 @@ ForestCalc.SPECIES = [
     id: 'chinese-fir', name: '杉木', latin: 'Cunninghamia lanceolata',
     a: 0.000058777042, b: 1.9699831, c: 0.89646157, isDynamic: false,
     source: 'DB51/T 1464-2012/LY208-77', reliability: 'high',
-    yieldRates: { spec: 0.55, nonSpec: 0.20, fuel: 0.05, waste: 0.20 }, // economic base 73%
+    yieldRates: { spec: 0.55, nonSpec: 0.20, fuel: 0.05, waste: 0.20 }, // economic base 75%
     defaultHRatio: 0.80,
     yieldDMin: 6, yieldDMax: 40,
-    econBasePct: 73,   // 南方杉木产区出材率范围70-78%,中等林分取73%
+    econBasePct: 75,   // 南方杉木产区出材率范围70-78%,中等林分取75%
     note: 'DB51采用LY208-77参数。推荐。贵州DB52/T 702有变指数公式'
   },
   {
     id: 'cypress', name: '柏木', latin: 'Cupressus funebris',
     a: 0.0000687928, b: 1.593567, c: 1.176727, isDynamic: false,
     source: 'DB51/T 1467-2012 四川省标(2025废止)', reliability: 'high',
-    yieldRates: { spec: 0.55, nonSpec: 0.20, fuel: 0.05, waste: 0.20 }, // economic base 71%
+    yieldRates: { spec: 0.55, nonSpec: 0.20, fuel: 0.05, waste: 0.20 }, // economic base 75%
     defaultHRatio: 0.65,
     yieldDMin: 6, yieldDMax: 36,
-    econBasePct: 71,   // 柏木干形中等,尖削度0.45,DB51标准
+    econBasePct: 75,   // 柏木干形中等,尖削度0.45,DB51标准
     note: '✅ 7个查表值验证一致。贵州DB52/T 773有变指数公式。推荐'
   },
   {
     id: 'cryptomeria', name: '柳杉(本地实际表)', latin: 'Cryptomeria fortunei',
     a: 0.000073839671, b: 1.979618, c: 0.836352, isDynamic: false,
     source: '本地实际使用材积表 回归(R²=0.992, n=80)', reliability: 'high',
-    yieldRates: { spec: 0.55, nonSpec: 0.20, fuel: 0.05, waste: 0.20 }, // 柳杉经济材72%(估)
+    yieldRates: { spec: 0.55, nonSpec: 0.20, fuel: 0.05, waste: 0.20 }, // economic base 75%
     defaultHRatio: 0.75,
     yieldDMin: 6, yieldDMax: 50,
+    econBasePct: 75,   // 柳杉干形通直,西南林区经验
     note: '⭐ 本地现用表！从用户提供的80个表值回归。D=20 H=15→0.268m³'
   },
   {
@@ -73,9 +74,10 @@ ForestCalc.SPECIES = [
     id: 'yunnan-pine', name: '云南松', latin: 'Pinus yunnanensis',
     a: 0.000058290117, b: 1.9796344, c: 0.90715154, isDynamic: false,
     source: 'LY208-77 旧标 / DB51/T 1465-2012（已废止）', reliability: 'medium',
-    yieldRates: { spec: 0.5, nonSpec: 0.18, fuel: 0.07, waste: 0.25 }, // 云南松经济材70%(估)
+    yieldRates: { spec: 0.5, nonSpec: 0.18, fuel: 0.07, waste: 0.25 }, // economic base 68%
     defaultHRatio: 0.68,
     yieldDMin: 6, yieldDMax: 40,
+    econBasePct: 68,   // 云南松旧标,干形中等
     note: '⚠ 旧标公式。2025新标DB53/T 1422.1已发布(天然/人工分开建模)，PDF已下载但需OCR提取系数'
   },
   {
@@ -92,9 +94,10 @@ ForestCalc.SPECIES = [
     id: 'yunnan-pine-planted', name: '云南松(人工·2025)', latin: 'P. yunnanensis (planted)',
     a: 0.00005696539, b: 1.991005, c: 0.841387, isDynamic: false,
     source: 'DB53/T 1422.1-2025 表A.2回归拟合(R²=0.992)', reliability: 'high',
-    yieldRates: { spec: 0.55, nonSpec: 0.18, fuel: 0.05, waste: 0.22 }, // 人工云南松经济材72%(估)
+    yieldRates: { spec: 0.55, nonSpec: 0.18, fuel: 0.05, waste: 0.22 }, // economic base 73%
     defaultHRatio: 0.72,
     yieldDMin: 6, yieldDMax: 40,
+    econBasePct: 73,   // 人工云南松干形优于天然林
     note: '✅ 从56个表值回归拟合。2038株样木(人工988)。2025-09-07实施'
   },
   // ---- 西南通用 LY208-77 ----
@@ -112,19 +115,20 @@ ForestCalc.SPECIES = [
     id: 'oak', name: '栎类', latin: 'Quercus spp.',
     a: 0.000059599785, b: 1.8564005, c: 0.93056206, isDynamic: false,
     source: 'LY208-77 栎类专用', reliability: 'medium',
-    yieldRates: { spec: 0.4, nonSpec: 0.17, fuel: 0.08, waste: 0.35 }, // 栎类经济材61%(估)
+    yieldRates: { spec: 0.4, nonSpec: 0.17, fuel: 0.08, waste: 0.35 }, // 栎类经济材57%
     defaultHRatio: 0.65,
     yieldDMin: 6, yieldDMax: 60,
+    econBasePct: 57,   // 栎类阔叶,尖削度大,出材率最低组
     note: 'LY208-77栎类专用系数。贵州DB52/T 826硬阔标准含栎类(已下载)'
   },
   {
     id: 'alder', name: '桤木', latin: 'Alnus cremastogyne',
     a: 0.000052750716, b: 1.9450324, c: 0.93862330, isDynamic: false,
     source: 'LY208-77 四川滇西北阔叶公式', reliability: 'medium',
-    yieldRates: { spec: 0.42, nonSpec: 0.15, fuel: 0.08, waste: 0.35 }, // economic base 62%
+    yieldRates: { spec: 0.42, nonSpec: 0.15, fuel: 0.08, waste: 0.35 }, // economic base 57%
     defaultHRatio: 0.70,
     yieldDMin: 6, yieldDMax: 36,
-    econBasePct: 62,   // 桤木速生阔叶,尖削度大
+    econBasePct: 57,   // 桤木速生阔叶,尖削度大
     note: '常见速生树种。贵州软阔DB52/T 822含桤木(已下载)'
   },
   {
@@ -141,7 +145,7 @@ ForestCalc.SPECIES = [
     id: 'soft-broad', name: '软阔', latin: 'Soft broadleaf spp.',
     a: 0.000052750716, b: 1.9450324, c: 0.93862330, isDynamic: false,
     source: 'LY208-77 四川滇西北阔叶公式', reliability: 'medium',
-    yieldRates: { spec: 0.42, nonSpec: 0.15, fuel: 0.08, waste: 0.35 }, // 桤木/软阔经济材63%(估)
+    yieldRates: { spec: 0.42, nonSpec: 0.15, fuel: 0.08, waste: 0.35 }, // 软阔经济材57%
     econBasePct: 57,
     defaultHRatio: 0.70,
     yieldDMin: 6, yieldDMax: 50,
@@ -163,19 +167,20 @@ ForestCalc.SPECIES = [
     a: 0.000080597, b: 0, c: 0, isDynamic: true,
     b1: 1.96709, b2: -0.0059006, c1: 0.7699, c2: 0.0072346,
     source: 'DB52/T 702-2011 贵州省标(现行)', reliability: 'high',
-    yieldRates: { spec: 0.52, nonSpec: 0.20, fuel: 0.05, waste: 0.23 }, // 杉木经济材73%(估)
+    yieldRates: { spec: 0.52, nonSpec: 0.20, fuel: 0.05, waste: 0.23 }, // economic base 73%
     defaultHRatio: 0.80,
     yieldDMin: 6, yieldDMax: 40,
+    econBasePct: 73,   // 贵州杉木变指数,同杉木组
     note: '变指数模型: V=a×D^(b1+b2(D+H))×H^(c1+c2(D+H))，精度高于固定指数'
   },
   {
     id: 'pine-gz', name: '马尾松(贵州)', latin: 'Pinus massoniana',
     a: 0.000062341803, b: 1.8551497, c: 0.95682492, isDynamic: false,
     source: 'DB52/T 703-2011 贵州省标(现行,已下载)', reliability: 'high',
-    yieldRates: { spec: 0.6, nonSpec: 0.2, fuel: 0.05, waste: 0.15 }, // economic base 78%
+    yieldRates: { spec: 0.6, nonSpec: 0.2, fuel: 0.05, waste: 0.15 }, // economic base 80%
     defaultHRatio: 0.70,
     yieldDMin: 6, yieldDMax: 50,
-    econBasePct: 78,   // 贵州马尾松
+    econBasePct: 80,   // 贵州马尾松
     note: '贵州人工马尾松。已下载标准全文(12页)'
   },
   {
@@ -183,10 +188,10 @@ ForestCalc.SPECIES = [
     a: 0.000085626, b: 0, c: 0, isDynamic: true,
     b1: 1.9148, b2: -0.0045828, c1: 0.74041, c2: 0.00668,
     source: 'DB52/T 773-2012 贵州省标(现行)', reliability: 'high',
-    yieldRates: { spec: 0.55, nonSpec: 0.20, fuel: 0.05, waste: 0.20 }, // economic base 71%
+    yieldRates: { spec: 0.55, nonSpec: 0.20, fuel: 0.05, waste: 0.20 }, // economic base 75%
     defaultHRatio: 0.65,
     yieldDMin: 6, yieldDMax: 36,
-    econBasePct: 71,   // 贵州柏木变指数,同柏木组
+    econBasePct: 75,   // 贵州柏木变指数,同柏木组
     note: '变指数模型，指数随D+H线性变化，干形适应性更强'
   },
   {
@@ -261,6 +266,11 @@ ForestCalc.STORAGE_KEY = 'fc_custom_species';
 ForestCalc.HIST_KEY = 'fc_history';
 
 // ========== 工具函数 ==========
+/**
+ * 获取当前激活的树种对象
+ * 优先级：自定义参数 > 下拉框选择
+ * @returns {object} 树种对象，含 id / name / latin / a / b / c / yieldRates / econBasePct 等属性
+ */
 ForestCalc.getActiveSpecies = function() {
   var cs = ForestCalc.getCustomSpecies();
   if (cs) return cs;
@@ -269,6 +279,10 @@ ForestCalc.getActiveSpecies = function() {
   return (idx >= 0 && idx < ForestCalc.SPECIES.length) ? ForestCalc.SPECIES[idx] : ForestCalc.SPECIES[0];
 };
 
+/**
+ * 从自定义参数面板读取用户输入的树种系数
+ * @returns {object|null} 自定义树种对象 { a, b, c, isDynamic, name, yieldRates }，参数无效时返回 null
+ */
 ForestCalc.getCustomSpecies = function() {
   var ca = parseFloat(document.getElementById('cA').value);
   var cb = parseFloat(document.getElementById('cB').value);

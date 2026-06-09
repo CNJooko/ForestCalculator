@@ -147,6 +147,10 @@ def extract_verification_points(note: str) -> list[VerificationPoint]:
 
 def calc_volume(sp: Species, dbh: float, height: float) -> float:
     """计算单株材积。"""
+    if dbh <= 0 or height <= 0:
+        raise ValueError(f"胸径和树高必须为正数，当前: D={dbh}, H={height}")
+    if dbh > 300 or height > 120:
+        raise ValueError(f"参数超出合理范围，当前: D={dbh}, H={height}")
     if sp.is_dynamic and sp.b1 is not None:
         dh = dbh + height
         b_exp = sp.b1 + sp.b2 * dh  # type: ignore[operator]
