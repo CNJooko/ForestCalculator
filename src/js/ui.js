@@ -428,30 +428,108 @@ ForestCalc.renderBatch = function() {
   if (ForestCalc.batchRows.length === 0) {
     tbody.innerHTML = '<tr><td colspan="11" style="padding:32px;color:#8b7355;">暂无数据 — 请添加树木</td></tr>';
     document.getElementById('batchSummary').style.display = 'none';
+    ForestCalc._batchRowPool = [];
     return;
   }
-  var h = '';
-  ForestCalc.batchRows.forEach(function(r, i) {
-    var s = ForestCalc.SPECIES[r.speciesIdx];
-    var vv = r._vol, sp = r._spec, ns = r._nonSpec, fl = r._fuel, wa = r._waste;
-    var speciesOptions = '';
-    ForestCalc.SPECIES.forEach(function(sp, si) {
-      speciesOptions += '<option value="' + si + '"' + (si===r.speciesIdx?' selected':'') + '>' + sp.name + '</option>';
-    });
-    h += '<tr>' +
-      '<td>' + (i+1) + '</td>' +
-      '<td><select onchange="ForestCalc._pushUndo();ForestCalc.batchRows[' + i + '].speciesIdx=parseInt(this.value);ForestCalc.batchRows[' + i + ']._vol=null;if(document.getElementById(\'batchSummary\').style.display!==\'none\')ForestCalc.calcBatch();else ForestCalc.renderBatch();" aria-label="选择树种">' + speciesOptions + '</select></td>' +
-      '<td><input type="number" value="' + r.dbh + '" step="0.1" aria-label="胸径(cm)" onchange="ForestCalc._pushUndo();ForestCalc.batchRows[' + i + '].dbh=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();" onblur="ForestCalc.autoFillBatchHeight(' + i + ');"></td>' +
-      '<td><input type="number" value="' + r.height + '" step="0.1" aria-label="树高(m)" onchange="ForestCalc._pushUndo();ForestCalc.batchRows[' + i + '].height=parseFloat(this.value)||\'\';ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
-      '<td><input type="number" value="' + (r.count || 1) + '" min="1" step="1" style="width:48px;padding:5px;text-align:center;" aria-label="株数" onchange="ForestCalc._pushUndo();var c=parseInt(this.value)||1;ForestCalc.batchRows[' + i + '].count=c;ForestCalc.batchRows[' + i + ']._vol=null;ForestCalc.renderBatch();"></td>' +
-      '<td>' + (vv!=null?vv.toFixed(4):'—') + '</td><td>' + (sp!=null?sp.toFixed(4):'—') + '</td><td>' + (ns!=null?ns.toFixed(4):'—') + '</td><td>' + (fl!=null?fl.toFixed(4):'—') + '</td><td>' + (wa!=null?wa.toFixed(4):'—') + '</td>' +
-      '<td>' +
-(i > 0 ? '<button class="btn btn-outline btn-sm" onclick="ForestCalc.moveBatchRow(' + i + ',-1)" title="上移">↑</button>' : '') +
-(i < ForestCalc.batchRows.length - 1 ? '<button class="btn btn-outline btn-sm" onclick="ForestCalc.moveBatchRow(' + i + ',1)" title="下移">↓</button>' : '') +
-'<button class="btn btn-outline btn-sm" onclick="ForestCalc.copyBatchRow(' + i + ')" title="复制此行">📋</button> <button class="btn btn-danger btn-sm" onclick="ForestCalc._pushUndo();ForestCalc.batchRows.splice(' + i + ',1);ForestCalc.renderBatch();">✕</button></td>' +
-    '</tr>';
-  });
-  tbody.innerHTML = h;
+
+  // 增量更新：只重建变化的行
+  var pool = ForestCalc._batchRowPool || (ForestCalc._batchRowPool = []);
+  var speciesList = ForestCalc.SPECIES;
+  var frag = document.createDocumentFragment();
+  var existingRows = tbody.rows.length;
+
+  for (var i = 0; i < ForestCalc.batchRows.length; i++) {
+    var r = ForestCalc.batchRows[i];
+    var tr = pool[i];
+    // 判断是否需要重建：新增行 或 数据变更
+    var needRebuild = !tr || tr.dataset.idx != i || tr.dataset.species != r.speciesIdx || tr.dataset.dbh != r.dbh || tr.dataset.height != r.height || tr.dataset.count != (r.count||1);
+
+    if (needRebuild) {
+      tr = document.createElement('tr');
+      tr.dataset.idx = i;
+      tr.dataset.species = r.speciesIdx;
+      tr.dataset.dbh = r.dbh;
+      tr.dataset.height = r.height;
+      tr.dataset.count = r.count || 1;
+
+      var vv = r._vol, sp = r._spec, ns = r._nonSpec, fl = r._fuel, wa = r._waste;
+      var volStr = (vv != null) ? vv.toFixed(4) : '—';
+      var specStr = (sp != null) ? sp.toFixed(4) : '—';
+      var nsStr = (ns != null) ? ns.toFixed(4) : '—';
+      var flStr = (fl != null) ? fl.toFixed(4) : '—';
+      var waStr = (wa != null) ? wa.toFixed(4) : '—';
+
+      var speciesOptions = '';
+      for (var si = 0; si < speciesList.length; si++) {
+        speciesOptions += '<option value="' + si + '"' + (si===r.speciesIdx?' selected':'') + '>' + speciesList[si].name + '</option>';
+      }
+
+      var moveUp = (i > 0) ? '<button class="btn btn-outline btn-sm" onclick="ForestCalc.moveBatchRow(' + i + ',-1)" title="上移">↑</button>' : '';
+      var moveDown = (i < ForestCalc.batchRows.length - 1) ? '<button class="btn btn-outline btn-sm" onclick="ForestCalc.moveBatchRow(' + i + ',1)" title="下移">↓</button>' : '';
+      var actions = moveUp + moveDown + '<button class="btn btn-outline btn-sm" onclick="ForestCalc.copyBatchRow(' + i + ')" title="复制此行">📋</button> <button class="btn btn-danger btn-sm" onclick="ForestCalc._pushUndo();ForestCalc.batchRows.splice(' + i + ',1);ForestCalc.renderBatch();">✕</button>';
+
+      tr.innerHTML =
+        '<td>' + (i+1) + '</td>' +
+        '<td><select aria-label="选择树种">' + speciesOptions + '</select></td>' +
+        '<td><input type="number" step="0.1" value="' + r.dbh + '" aria-label="胸径(cm)"></td>' +
+        '<td><input type="number" step="0.1" value="' + r.height + '" aria-label="树高(m)"></td>' +
+        '<td><input type="number" min="1" step="1" value="' + (r.count||1) + '" style="width:48px;padding:5px;text-align:center;" aria-label="株数"></td>' +
+        '<td>' + volStr + '</td>' +
+        '<td>' + specStr + '</td>' +
+        '<td>' + nsStr + '</td>' +
+        '<td>' + flStr + '</td>' +
+        '<td>' + waStr + '</td>' +
+        '<td>' + actions + '</td>';
+
+      // 绑定事件（使用闭包捕获当前 i）
+      (function(idx, row) {
+        var sel = row.cells[1].firstChild;
+        sel.onchange = function() {
+          ForestCalc._pushUndo();
+          ForestCalc.batchRows[idx].speciesIdx = parseInt(this.value);
+          ForestCalc.batchRows[idx]._vol = null;
+          if (document.getElementById('batchSummary').style.display !== 'none') ForestCalc.calcBatch();
+          else ForestCalc.renderBatch();
+        };
+        var dbhInput = row.cells[2].firstChild;
+        dbhInput.onchange = function() {
+          ForestCalc._pushUndo();
+          ForestCalc.batchRows[idx].dbh = parseFloat(this.value) || '';
+          ForestCalc.batchRows[idx]._vol = null;
+          ForestCalc.renderBatch();
+        };
+        dbhInput.onblur = function() { ForestCalc.autoFillBatchHeight(idx); };
+        var hInput = row.cells[3].firstChild;
+        hInput.onchange = function() {
+          ForestCalc._pushUndo();
+          ForestCalc.batchRows[idx].height = parseFloat(this.value) || '';
+          ForestCalc.batchRows[idx]._vol = null;
+          ForestCalc.renderBatch();
+        };
+        var cntInput = row.cells[4].firstChild;
+        cntInput.onchange = function() {
+          ForestCalc._pushUndo();
+          var c = parseInt(this.value) || 1;
+          ForestCalc.batchRows[idx].count = c;
+          ForestCalc.batchRows[idx]._vol = null;
+          ForestCalc.renderBatch();
+        };
+      })(i, tr);
+
+      pool[i] = tr;
+    }
+    frag.appendChild(tr);
+  }
+
+  // 移除多余行
+  if (pool.length > ForestCalc.batchRows.length) {
+    pool.length = ForestCalc.batchRows.length;
+  }
+
+  // 一次性更新 DOM
+  tbody.innerHTML = '';
+  tbody.appendChild(frag);
+
   document.getElementById('batchSummary').style.display = 'none';
   var countEl = document.getElementById('batchRowCount');
   if (countEl) countEl.textContent = '共 ' + ForestCalc.batchRows.length + ' 行';
